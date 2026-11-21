@@ -1,0 +1,12 @@
+{
+    "title": "Fight Night Round 2",
+    "short": "FightNight2",
+    "exe": "FightNight2",
+    "xbe": "default.xbe",
+    "releases": {
+        "8edb378c6f3d9f984751c0a58060485bda189c76": "Europe"
+    },
+    "repo": "https://github.com/hk21x/fightnight2-recomp.git",
+    "branch": "main",
+    "toolchain": "https://raw.githubusercontent.com/hk21x/fightnight2-recomp/main/launcher/toolchain.json"
+}

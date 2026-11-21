@@ -1,0 +1,8 @@
+# vblank buttons [vblanks held]   (vertical blanks: 60 a second; one line per press)
+# First boot (no save) to the main menu, 2026-11-21: START skips the EA Sports logo (easports.nfx) and the intro
+# (intro.nfx), START on the title screen, A answers Yes to the autosave question; the main menu (Play Now first) is
+# up from about vblank 1380.
+300 START 10
+450 START 10
+900 START 10
+1200 A 10

@@ -1,0 +1,21 @@
+# vblank buttons [vblanks held]   (vertical blanks: 60 a second; one line per press)
+# Smoke route, first boot (no save) into a Play Now fight, 2026-11-21. Draws a frame from the log in brackets.
+300 START 10
+# intro movie skipped; title screen (about 45)
+450 START 10
+900 START 10
+# autosave question: Yes (about 55)
+1200 A 10
+# main menu: Play Now (about 130)
+1500 A 10
+# Select Corner: player 1 stays in the middle, A takes the default (about 74)
+1800 A 10
+# Select Boxer: Bernard Hopkins, then Ronald Wright (about 255)
+2100 A 10
+2400 A 10
+# Select Venue: Staples Center (about 67, the 2D menu smoke.sh checks at vblanks 2500 to 2680)
+2700 A 10
+# loading, then A skips the walk-in and introductions; round 1 from about vblank 3200 (about 290). No more input:
+# the computer boxer fights, player 1 stands.
+3000 A 10
+3300 A 10

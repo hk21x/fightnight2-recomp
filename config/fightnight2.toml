@@ -1,0 +1,9 @@
+# Hand-kept recompiler config for default.xbe, the file the build reads. config/game.toml is xbe_symbols output and
+# every scan rewrites it, so nothing is edited there: it is included here, and everything added by hand goes below.
+includes = ["game.toml"]
+
+[symbols]
+IDirectSoundBuffer_Pause = 0x2C4374  # .XTLID 0xB0057 (True Crime's id too); 0x1C bytes shaped like Play 0x2C4314 and Stop 0x2C4338: this-0x1C, call 0x2C3C4F, ret 8
+
+[data]
+D3D_PresentInterval = 0x2BE72C  # render state 127 (D3D_RenderState 0x2BE530 + 0x1FC); the present code compares it with 0x80000000 at 0x2B23FA and 0x2B25F7, 0x2B5384 stores it, 0x2B9C2F..0x2B9C45 set 1, 2, 4

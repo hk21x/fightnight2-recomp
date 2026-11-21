@@ -1,7 +1,8 @@
 // Fight Night Round 2's button pictures as today's Xbox pad shows them (setting modern_buttons), or, while the keyboard
 // and mouse play, the keys and mouse bound to each control.
 //
-// The pictures are separate DXT3 textures (format 0x0E), loaded with the front end: the prompts' A B X Y and START
+// The pictures are separate DXT3 textures (format 0x0E), loaded with the front end (and one P8 A, 0x0B, loaded with
+// the fight's menus: pause, throw in the towel): the prompts' A B X Y and START
 // (32x32 discs: "A SELECT  B BACK  Y HELP" under every menu, "START DONE" on the name entry), the pad on Select Corner
 // (128x64, the pad in its upper left 66x52) and the pad on My Corner > Options > Controls (128x128; the lines to its
 // labels are the game's own draws, so each control is drawn where its line ends). When one is bound
@@ -256,9 +257,11 @@ struct Known {
     Kind kind;
     const char* name;
 };
-// level 0's FNV-1a as the disc has it (FN2_PICS_LOG), all DXT3
+// level 0's FNV-1a as the disc has it (FN2_PICS_LOG); DXT3 but the fight's own A, P8 with its palette (the replacement
+// is drawn whatever the palette)
 constexpr Known kKnown[] = {
     {0x3FE35FFAD85312F7ull, 32, 32, Kind::kA, "a"},
+    {0x0249657C4873E4CDull, 32, 32, Kind::kA, "a_fight"},  // P8 (0x0B): the fight's menus (pause, throw in the towel)
     {0x8500D44AC7FFAF90ull, 32, 32, Kind::kB, "b"},
     {0x10A5576D6F685C09ull, 32, 32, Kind::kX, "x"},
     {0x390E4184C9DF499Full, 32, 32, Kind::kY, "y"},
@@ -490,16 +493,36 @@ void Apply(Texture& t, const Look& look) {
          look.keys ? "the keyboard's" : look.modern ? "today's pad" : "the disc has it");
 }
 
-void Discover(const gpu::TextureDesc& d, uint64_t hash) {
+void Discover(const gpu::TextureDesc& d, uint64_t hash, uint32_t palette) {
     static std::set<uint64_t> seen;
-    if (!seen.insert(hash).second) return;
+    uint64_t pal = 0;
+    if (d.format == 0x0B && palette) {
+        const uint32_t entries = 256u >> (kernel::R32(palette) >> 30), colours = mem::VirtualFromPhysical(kernel::R32(palette + 4));
+        if (mem::IsCommitted(colours) && mem::IsCommitted(colours + entries * 4 - 1))
+            pal = Fnv(static_cast<const uint8_t*>(kernel::HostPtr(colours)), entries * 4);
+    }
+    if (!seen.insert(hash ^ pal * 31).second) return;
     std::vector<uint32_t> bgra;
-    const bool decoded = gpu::DecodeBgra(d, 0, static_cast<const uint8_t*>(kernel::HostPtr(d.data)), bgra);
-    LOGR("fn2: texture %ux%u format %X at %08X hash %016llX%s", d.width, d.height, d.format, d.data,
-         (unsigned long long)hash, decoded ? "" : " (not decoded)");
+    bool decoded = gpu::DecodeBgra(d, 0, static_cast<const uint8_t*>(kernel::HostPtr(d.data)), bgra);
+    // P8 (swizzled): its colours through the stage's palette (D3DPalette: the size code in Common's top bits, Data +4)
+    if (d.format == 0x0B && palette && !d.linear) {
+        const uint32_t entries = 256u >> (kernel::R32(palette) >> 30), colours = mem::VirtualFromPhysical(kernel::R32(palette + 4));
+        if (mem::IsCommitted(colours) && mem::IsCommitted(colours + entries * 4 - 1)) {
+            const auto* texels = static_cast<const uint8_t*>(kernel::HostPtr(d.data));
+            bgra.assign(size_t(d.width) * d.height, 0);
+            for (uint32_t y = 0; y < d.height; y++)
+                for (uint32_t x = 0; x < d.width; x++) {
+                    const uint8_t i = texels[gpu::SwizzledOffset(x, y, d.width, d.height)];
+                    bgra[size_t(y) * d.width + x] = i < entries ? kernel::R32(colours + i * 4u) : 0;
+                }
+            decoded = true;
+        }
+    }
+    LOGR("fn2: texture %ux%u format %X at %08X hash %016llX palette %04llX%s", d.width, d.height, d.format, d.data,
+         (unsigned long long)hash, (unsigned long long)(pal & 0xFFFF), decoded ? "" : " (not decoded)");
     if (!decoded) return;
     char name[96];
-    std::snprintf(name, sizeof name, "pic_%016llX_%ux%u_f%X.bgra", (unsigned long long)hash, d.width, d.height, d.format);
+    std::snprintf(name, sizeof name, "pic_%016llX_%04llX_%ux%u_f%X.bgra", (unsigned long long)hash, (unsigned long long)(pal & 0xFFFF), d.width, d.height, d.format);
     if (FILE* f = std::fopen(name, "wb")) {
         std::fwrite(bgra.data(), 4, bgra.size(), f);
         std::fclose(f);
@@ -508,18 +531,19 @@ void Discover(const gpu::TextureDesc& d, uint64_t hash) {
 }  // namespace
 
 // GameInfo::texture_bound
-bool ButtonPictures(uint32_t header, uint32_t /*palette*/) {
+bool ButtonPictures(uint32_t header, uint32_t palette) {
     UltrawideTick();
     static const bool log = EnvOn("FN2_PICS_LOG");
     gpu::TextureDesc d;
     if (!gpu::Describe(header, d) || d.cube || d.depth > 1 || d.width > 256 || d.height > 256) return false;
-    const bool ours = d.format == 0x0E && ((d.width == 32 && d.height == 32) || (d.width == 128 && (d.height == 64 || d.height == 128)));
+    const bool ours = (d.format == 0x0E && ((d.width == 32 && d.height == 32) || (d.width == 128 && (d.height == 64 || d.height == 128)))) ||
+                      (d.format == 0x0B && d.width == 32 && d.height == 32);
     if (!ours && !log) return false;
     const uint32_t bytes = gpu::LevelSize(d, 0);
     if (!bytes || !mem::IsCommitted(d.data) || !mem::IsCommitted(d.data + bytes - 1)) return false;
     const auto* texels = static_cast<const uint8_t*>(kernel::HostPtr(d.data));
     std::lock_guard<std::mutex> hold(g_lock);
-    if (log) Discover(d, Fnv(texels, bytes));
+    if (log) Discover(d, Fnv(texels, bytes), palette);
     if (!ours) return false;
     const Look look = Current();
     const uint64_t head = Fnv(texels, std::min<uint32_t>(bytes, 64));

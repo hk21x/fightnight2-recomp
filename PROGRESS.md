@@ -15,6 +15,11 @@ Newest first. Each entry: date, what changed, what was learned, what's next.
 
 ## Log
 
+### 2026-11-21 - Harry: the Windows build plays into a fight
+
+Harry ran the Windows build on his PC: "Game launches into a fight, perfect." Not yet reported: sound, and whether the
+game looks 20% fast (the 50 Hz finding below).
+
 ### 2026-11-21 - GPU-VM: a fight on the Arc; the game runs 20% fast (50 Hz game on 60 Hz vertical blanks)
 
 58a9ed1 (built by recomp-vm) on GPU-VM (Intel Arc A750, 1920x1080), in `C:\Testing\fightnight2-recomp` with the disc

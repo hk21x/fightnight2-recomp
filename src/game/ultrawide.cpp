@@ -12,9 +12,11 @@
 // The front end is 2D laid out for 16:9 over full-screen backgrounds, which would stretch; its 3D (the boxers on the
 // menus) is seen through a narrow lens, 8 degrees across, where the arena's cameras (the fight's 57.8, the walk-ins'
 // 10 to 110) are wide. So the frame is held at 16:9 (app::HoldAspect), its sides black, except while a 16:9 view wider
-// than 20 degrees has been set up in the last quarter second, and for 300 ms without a break before that; it is held
-// again by a cutscene's bars or a menu's narrow view, not by the arena's views stopping (the pause menu leaves the camera
-// as it is).
+// than 20 degrees has been set up in the last quarter second, and for 300 ms without a break before that. It stays
+// filled while the fight's own 2D is drawn (its HUD, pause, throw in the towel: shapes through 0x125280, which the
+// front end's menus, drawn by APT, never use; no view is set up while paused) and is held again by a cutscene's bars, a
+// menu's narrow view, or neither the arena nor any shape in the last quarter second (quitting to Select Boxer, whose
+// boxers are drawn into 4:3 textures).
 //
 // Cutscenes: the in-engine ones (the walk-ins, "Tonight's Fight", the corners between rounds, replays) are letterboxed
 // by four untextured shapes 854 wide (480 x 16:9, from x -107 in the game's 640x480 layout), 33.5 high, sliding in
@@ -52,6 +54,7 @@ Clock::time_point g_bar;    // a letterbox bar last drawn
 Clock::time_point g_arena;  // a wide 16:9 view (the arena's) last set up
 Clock::time_point g_since;  // since when they have been set up without a break
 Clock::time_point g_narrow; // a narrow 16:9 view (a menu's boxer) last set up
+Clock::time_point g_shape;  // a 2D shape drawn (the fight's HUD, pause, throw in the towel; not the front end's menus)
 bool g_held = false;        // the frame held at 16:9
 float g_free = 0;           // the frame's shape while not held
 
@@ -73,7 +76,8 @@ void Decide() {
     // into a fight: the arena for 300 ms on end (a menu's one wide view as it opens is not one); out of it: a cutscene's
     // bars or a menu's boxer, not the arena's views stopping (the pause menu draws the arena still, its camera unchanged)
     const bool cutscene = Recent(g_bar), arena = Recent(g_arena) && Clock::now() - g_since > std::chrono::milliseconds(300);
-    const bool hold = g_free > kWide + 1e-3f && (g_held ? cutscene || !arena : cutscene || Recent(g_narrow));
+    const bool left = !Recent(g_arena) && !Recent(g_shape);
+    const bool hold = g_free > kWide + 1e-3f && (g_held ? cutscene || !arena : cutscene || Recent(g_narrow) || left);
     if (hold == g_held) return;
     g_held = hold;
     app::HoldAspect(hold ? kWide : 0.0f);
@@ -98,6 +102,7 @@ void UltrawideTick() {
 X86_EXTERN_FUNC(__imp__sub_00125280);
 X86_FUNC(sub_00125280) {
     const uint32_t o = ctx.ecx;
+    if (kernel::G<uint8_t>(o + 0x25)) g_shape = Clock::now();
     if (kernel::G<uint8_t>(o + 0x25) && kernel::G<uint8_t>(o + 0x30) == 4 && kernel::R32(o + 0xE4) == 0) {
         float x0 = F32(o + 0x34), x1 = x0, y0 = F32(o + 0x38), y1 = y0;
         for (uint32_t i = 1; i < 4; i++) {

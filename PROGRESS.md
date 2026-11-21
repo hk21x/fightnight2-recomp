@@ -16,6 +16,17 @@ Newest first. Each entry: date, what changed, what was learned, what's next.
 
 ## Log
 
+### 2026-11-21 - GPU-VM at 2.4:1: menus and cutscenes at 16:9, the fight filling the screen
+
+99e55f3 (built by recomp-vm) on GPU-VM in a 1920x800 window, aspect auto. The front end is held at 16:9 from the
+start: the full-screen 2D backgrounds stretched across the whole width in 6122d15, so now the frame fills the screen
+only once wide (over 20 degrees) 16:9 views have been set up for 300 ms, and is held again by a cutscene's bars or a
+menu's 8-degree boxer view. The pause menu leaves the camera alone and stays filled. Seen: the main menu pillarboxed with
+the modern A and Y prompts; the "Tonight's Fight" cutscene letterboxed and pillarboxed at 16:9; the fight filling
+2.4:1 with the arena wider at the sides and the HUD at the screen's edges; Select Boxer's A B Y prompts modern.
+Not checkable on GPU-VM: the keyboard pictures (injected keys do not reach the game there; Enter passed the title once,
+nothing more); the headless dumps show them.
+
 ### 2026-11-21 - Modern button pictures, keyboard and mouse controls, ultrawide
 
 Harry asked for the Xbox buttons mapped and drawn as today's pads, PC controls with their own pictures, and ultrawide

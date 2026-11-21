@@ -92,6 +92,7 @@ const app::GameInfo app::kGame = {
     .default_keys = fn2::Keys,            // the keys above
     .texture_bound = fn2::ButtonPictures,  // buttons.cpp: today's pad and the keyboard's keys in the prompts
     .auto_fills_screen = true,            // "from the screen's shape" fills an ultrawide screen (src/game/ultrawide.cpp)
+    .vblank_hz = 50,                      // PAL 50 Hz: the game steps a 50th of a second a frame (0x37DE1C +0.02)
     // optional, after these: .achievements (conditions on guest memory), .same_code (other releases' xbe SHA-1s with
     // the same code), .wheel (what a steering wheel's force feedback follows)
 };

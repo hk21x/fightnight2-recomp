@@ -33,6 +33,7 @@
 #include "strokes.h"
 
 namespace fn2 {
+void UltrawideTick();  // src/game/ultrawide.cpp
 bool modern_buttons = true;  // the setting (src/common/game_info.cpp)
 
 namespace {
@@ -508,6 +509,7 @@ void Discover(const gpu::TextureDesc& d, uint64_t hash) {
 
 // GameInfo::texture_bound
 bool ButtonPictures(uint32_t header, uint32_t /*palette*/) {
+    UltrawideTick();
     static const bool log = EnvOn("FN2_PICS_LOG");
     gpu::TextureDesc d;
     if (!gpu::Describe(header, d) || d.cube || d.depth > 1 || d.width > 256 || d.height > 256) return false;

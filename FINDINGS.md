@@ -37,3 +37,9 @@ game's own code and data, with its addresses).
   D3DDevice_BeginPush (0x2AF410) and EndPush (0x2AF430) at 9 sites from 0x210F20 to 0x22103C; the runtime's EndPush
   decoder runs them, with no stop or dropped primitive logged. MakeSpace (0x2AF8D0) is called only from the D3D
   library.
+- **[game]** Ghidra PushBufferScan: no NV2A command stores in game code outside the 9 BeginPush/EndPush functions
+  (0x210EB0 to 0x220C00, SET_BEGIN_END 0x417FC). No recorded push buffers.
+
+## Code
+- **[game]** sub_25AFA3 is SSE2 integer code (a quantiser loop) that the Xbox CPU cannot run: an unreachable path.
+  Its five opcodes are left as traps in the recompiled code; none has fired.

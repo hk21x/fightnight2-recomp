@@ -5,12 +5,27 @@ Newest first. Each entry: date, what changed, what was learned, what's next.
 ## Status
 - Milestone: 1 - set up; headless from a first boot through the front end into a fight, with no game code
 - XDK: 5849 QFE 1 (D3D8 not LTCG), 130 of 278 functions, 10 of 13 data from the scan; 2 more by hand
-- Push buffers: no RunPushBuffer/CreatePushBuffer; EAGL's BeginPush/EndPush at 9 sites, decoded by the runtime
+- Push buffers: none recorded (no RunPushBuffer/CreatePushBuffer, Ghidra scan); EAGL's BeginPush/EndPush at 9 sites,
+  decoded by the runtime
 - Smoke: `scripts/smoke.sh` (scripts/pad/fight.txt) SMOKE OK; boot.txt alone fails it (130 draws, the main menu)
 - GitHub: hk21x/fightnight2-recomp, not created yet (local repository only); SDK at fork main c06f201
 - Windows: not built yet
 
 ## Log
+
+### 2026-11-21 - Ghidra: no raw NV2A writes outside BeginPush; the SSE2 opcodes are an unreachable path
+
+Ghidra project `~/ghidra-projects/fightnight2` (game.exe from xbe2pe, 20,769 exports, full analysis).
+- `scripts/ghidra.sh PushBufferScan`: in the game's .text, the only stores through a pointer register with an NV2A
+  method shape are `0x417FC` (SET_BEGIN_END, one dword) in the 9 functions that call BeginPush/EndPush (0x210EB0,
+  0x210F30, 0x211140, 0x2111C0, 0x211460, 0x211630, 0x211740, 0x220840, 0x220C00). The 0x284790 and 0x2893xx..0x289Dxx
+  stores are code addresses (callback tables), the rest vtables. So everything EAGL writes by hand goes through
+  BeginPush/EndPush, which the runtime decodes. **Plan item 2 is answered: no recorded push buffers.**
+- The unimplemented SSE2 integer ops (pxor, psraw, psubw, paddw, pmulhuw on xmm) are all in sub_25AFA3, a real
+  quantiser loop (abs, add rounding, pmulhuw, sign back). The Xbox's Pentium III has no SSE2, so the console never
+  runs it (a CPU-specific path in a shared library); it has no direct callers, and its traps were never hit.
+
+Next: the Windows build through recomp-vm (a bundle, as the GitHub repository does not exist yet), then gpu-vm.
 
 ### 2026-11-21 - Repository set up from the SDK template; a fight headless; smoke route
 

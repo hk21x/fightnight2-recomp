@@ -8,13 +8,27 @@ Newest first. Each entry: date, what changed, what was learned, what's next.
 - Push buffers: none recorded (no RunPushBuffer/CreatePushBuffer, Ghidra scan); EAGL's BeginPush/EndPush at 9 sites,
   decoded by the runtime
 - Smoke: `scripts/smoke.sh` (scripts/pad/fight.txt) SMOKE OK; boot.txt alone fails it (130 draws, the main menu)
-- GitHub: hk21x/fightnight2-recomp, not created yet (local repository only); SDK on fork branch fn2-hold-aspect 08c1db7
-  (fork main 5af29c1 + HoldAspect for any title), main still pins c06f201
+- GitHub: hk21x/fightnight2-recomp (private), main pushed; SDK on fork branch fn2-hold-aspect 8fa489f (fork main
+  5af29c1 + HoldAspect for any title + GameInfo::vblank_hz), to gate before fork main
 - Windows: 58a9ed1 runs on GPU-VM (Arc): menus and two rounds of a fight, native 16:9, no crash; no sound there (no
   audio device). `\\192.168.1.229\Testing\fightnight2-test-b574ce7` ready for Harry
-- Open: the game steps 0.02 s a frame for PAL 50 Hz but gets 60 Hz vertical blanks: about 20% fast (SDK fix)
+- PAL 50 Hz: vblank_hz = 50, game time at real speed
 
 ## Log
+
+### 2026-11-21 - Harry's full fight: too fast, ultrawide boxed in; both fixed; on GitHub
+
+Harry created hk21x/fightnight2-recomp and played a whole fight on 163b7f1 at 3440x1440 ("works great"), with two
+problems:
+- **Too fast:** the 50 Hz finding. SDK `GameInfo::vblank_hz` (fork branch fn2-hold-aspect 8fa489f, default 60): the
+  vertical blank thread and the present pacing (app::g_pace_hz) at the title's rate. FN2 sets 50. Headless fight, two
+  memory dumps 20 s apart: game time 0x37DE1C advances 0.99 s a real second (1.19 at 60). SMOKE OK at 50.
+- **Ultrawide sides:** his screenshot is a knockdown count, letterboxed and held at 16:9, so boxed in on all four
+  sides; his log shows every knockdown, replay and round end held the same way. In-fight cutscenes are the arena's 3D
+  (widened as play is) with bars past both edges, so they now fill the screen as play does. "Left the fight" needs a
+  second of neither the arena's views nor the fight's 2D (a quarter second dropped a walk-in camera cut to 16:9).
+- main fast-forwarded to buttons (cf65fc8) and pushed with buttons; the SDK pin is on the fork branch fn2-hold-aspect,
+  not fork main yet (gate and Harry's go).
 
 ### 2026-11-21 - GPU-VM unattended: keyboard play, a 15-minute fight, pause and quit; two fixes
 

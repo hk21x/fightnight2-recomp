@@ -277,8 +277,9 @@ void Prompt(Canvas& c, Kind kind, const Look& look) {
         int control = kind == Kind::kA ? input::kA : kind == Kind::kB ? input::kB : kind == Kind::kX ? input::kX
                     : kind == Kind::kY ? input::kY : input::kStart;
         uint16_t vk = KeyOf(look, control);
-        float w = KeyLabel(vk).size() > 1 ? 31 : 24;
-        KeyCap(c, Around(kCx, kCy, w, 22), vk);
+        // no wider than the disc it stands for (a menu's text starts just past it)
+        float w = KeyLabel(vk).size() > 1 ? 27 : 23;
+        KeyCap(c, Around(kCx, kCy, w, KeyLabel(vk).size() > 1 ? 18 : 22), vk);
         return;
     }
     switch (kind) {

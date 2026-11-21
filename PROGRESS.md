@@ -13,6 +13,13 @@ Newest first. Each entry: date, what changed, what was learned, what's next.
 
 ## Log
 
+### 2026-11-21 - Audio headless: sound from the logo through the fight
+
+`scripts/harness.sh 120 scripts/pad/fight.txt WAV=...`, then `scripts/wavstats.py`: 118 s at 48 kHz stereo, sound from
+the EA Sports logo movie (log 2.3 s) on: the intro, the menus' music, the walk-in and the fight, about -20 to -30 dB
+RMS, peaks to -5.5 dB, **no clipped samples**. Silent: the first second, and 6 to 7 s, where START cuts the logo and
+the intro starts. DSOUND loads its effects image from memory (13 effects). Whether it sounds right is for Windows.
+
 ### 2026-11-21 - A PAL console, and the disc's three languages
 
 `src/common/game_info.cpp`: `.pal_console = true` (a PAL-only disc, region 4, like True Crime, NightFire and EoN's PAL

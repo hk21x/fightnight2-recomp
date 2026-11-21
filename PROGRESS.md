@@ -8,12 +8,44 @@ Newest first. Each entry: date, what changed, what was learned, what's next.
 - Push buffers: none recorded (no RunPushBuffer/CreatePushBuffer, Ghidra scan); EAGL's BeginPush/EndPush at 9 sites,
   decoded by the runtime
 - Smoke: `scripts/smoke.sh` (scripts/pad/fight.txt) SMOKE OK; boot.txt alone fails it (130 draws, the main menu)
-- GitHub: hk21x/fightnight2-recomp, not created yet (local repository only); SDK at fork main c06f201
+- GitHub: hk21x/fightnight2-recomp, not created yet (local repository only); SDK on fork branch fn2-hold-aspect 08c1db7
+  (fork main 5af29c1 + HoldAspect for any title), main still pins c06f201
 - Windows: 58a9ed1 runs on GPU-VM (Arc): menus and two rounds of a fight, native 16:9, no crash; no sound there (no
   audio device). `\\192.168.1.229\Testing\fightnight2-test-b574ce7` ready for Harry
 - Open: the game steps 0.02 s a frame for PAL 50 Hz but gets 60 Hz vertical blanks: about 20% fast (SDK fix)
 
 ## Log
+
+### 2026-11-21 - Modern button pictures, keyboard and mouse controls, ultrawide
+
+Harry asked for the Xbox buttons mapped and drawn as today's pads, PC controls with their own pictures, and ultrawide
+with cutscenes kept at their own shape. Branch `buttons`.
+- **Button pictures** (src/common/buttons.cpp, from Juiced's and 50 Cent's): the prompts' A B X Y and START are separate
+  32x32 DXT3 textures loaded with the front end; Select Corner's pad is 128x64 (the pad in its upper left), the
+  Controls page's 128x128. Found with FN2_PICS_LOG (each bound texture logged with level 0's FNV-1a and dumped). When
+  one is bound the renderers get a 4x picture (gpu::SetReplacement): A B X Y as coloured letters on dark discs, START
+  as Menu, the pads as today's pad; with the keyboard the bound keys (Enter, Backspace, T, C, Esc) and a keyboard and
+  mouse. The Controls page's lines are the game's draws, so each control is drawn where its line ends (measured on
+  GPU-VM's 1920x1080 frame); White and Black are shown as LB and RB. Setting `modern_buttons` (on). Headless:
+  FN2_KEY_PICTURES=1, FN2_BUTTONS_DUMP=dir.
+- **Controls** (My Corner > Options > Controls, needs a profile): configuration 1 (default) has LT lean/body punch, RT
+  block, the right stick Total Punch Control, A signature, B illegal blow, X taunt, Y clinch, White signature, Black
+  illegal blow, START pause, the left stick and d-pad movement; configuration 4 puts the punches on A B X Y.
+- **Keyboard and mouse** (GameInfo::default_keys, mouse_look): WASD moves, the mouse is the right stick (IJKL too),
+  Shift leans, Space and the right button block, Enter/Backspace choose and go back in menus and are A/B, F and G
+  are A and B in a fight, T taunt, C clinch, E and R White and Black, Esc/P pause, arrows the d-pad.
+- **Ultrawide** (src/game/ultrawide.cpp): 0x213400 builds every 3D view's projection and culling planes (camera;
+  horizontal fov in degrees, aspect, near, far), about once a frame; in widescreen mode the views ask for 16:9 with the
+  fov widened by 4/3 in its tangent (0x133040). A 16:9 view is given the frame's shape and its fov widened the same
+  way; `auto_fills_screen`. Headless at FRAME_ASPECT_X100=239: "3D views at 2.390:1 (57.8 degrees across shown at
+  73.2)". The 2D is 16:9 and kept in the middle by the renderers.
+- **Cutscenes**: the in-engine ones are letterboxed by untextured shapes 854 wide (x -107, 33.5 high) through the 2D
+  shape drawer 0x125280 (found with gdb: EndPush from 0x210EB0 from 0x125280 from the frame 0x169200). While one is on
+  screen the frame is held at 16:9 (app::HoldAspect): headless, "cutscene begins" at 47.5 s and "ends" at 52.1 s when
+  round 1 starts. HoldAspect only worked with aspect_live, so the SDK change is on fork branch `fn2-hold-aspect`
+  (08c1db7, over fork main 5af29c1); 50 Cent, the only other caller, is unchanged. It needs the all-games gate and
+  Harry's go before fork main.
+- SMOKE OK (menu 67, fight 296 draws a frame). Windows build of 6122d15 asked of recomp-vm, for GPU-VM.
 
 ### 2026-11-21 - Harry: the Windows build plays into a fight, with sound
 

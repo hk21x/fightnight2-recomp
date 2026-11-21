@@ -76,8 +76,13 @@ void Decide() {
     // into a fight: the arena for 300 ms on end (a menu's one wide view as it opens is not one); out of it: a cutscene's
     // bars or a menu's boxer, not the arena's views stopping (the pause menu draws the arena still, its camera unchanged)
     const bool cutscene = Recent(g_bar), arena = Recent(g_arena) && Clock::now() - g_since > std::chrono::milliseconds(300);
-    const bool left = !Recent(g_arena) && !Recent(g_shape);
-    const bool hold = g_free > kWide + 1e-3f && (g_held ? cutscene || !arena : cutscene || Recent(g_narrow) || left);
+    // left: neither for a second (a cut between cameras, a load inside the fight, is shorter)
+    const auto now = Clock::now();
+    const bool left = now - g_arena > std::chrono::seconds(1) && now - g_shape > std::chrono::seconds(1);
+    // a cutscene is 3D through the arena's cameras, widened as play is: it fills the screen too, its letterbox bars
+    // (854 wide, past both edges of the 640 layout) reaching the screen's sides (GameInfo::edge_fills)
+    (void)cutscene;
+    const bool hold = g_free > kWide + 1e-3f && (g_held ? !arena : Recent(g_narrow) || left);
     if (hold == g_held) return;
     g_held = hold;
     app::HoldAspect(hold ? kWide : 0.0f);

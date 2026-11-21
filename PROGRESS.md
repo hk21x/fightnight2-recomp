@@ -9,9 +9,23 @@ Newest first. Each entry: date, what changed, what was learned, what's next.
   decoded by the runtime
 - Smoke: `scripts/smoke.sh` (scripts/pad/fight.txt) SMOKE OK; boot.txt alone fails it (130 draws, the main menu)
 - GitHub: hk21x/fightnight2-recomp, not created yet (local repository only); SDK at fork main c06f201
-- Windows: not built yet
+- Windows: b574ce7 builds on recomp-vm; ready to run in \\\\192.168.1.229\\Testing\\fightnight2-test-b574ce7, not run yet
 
 ## Log
+
+### 2026-11-21 - Windows build passes (recomp-vm); widescreen looks native
+
+- recomp-vm built b574ce7 from a git bundle (the GitHub repository does not exist yet): clang 22.1.3, Release, 429
+  steps, no errors, "Fight Night Round 2 built." FightNight2.exe 19,705,856 bytes, SHA-256 9886cf1f...c08cac.
+  Ready to run, not run: `\\192.168.1.229\Testing\fightnight2-test-b574ce7` (exe, pdb, assets from the ISO, SHA-1s
+  checked).
+- Widescreen: the xbe has an APT variable `gWidescreenMode` and a `bWidescreen` option in its settings block. Headless
+  the default display is 1280x720, so the game has been told "widescreen" all along. A fight frame at OUTPUT=1280x720
+  against OUTPUT=1024x768 (vblank 3900; not the same moment) shows narrower boxers and HUD bars at 16:9: anamorphic
+  16:9 in the 640x576 buffer, so probably native. Confirm on Windows (circles stay round at 16:9, the HUD in place).
+
+Next: Harry runs the test folder (a fight, the picture at 16:9, the sound, the fight clock against the wall clock for a
+50 Hz assumption). Push once hk21x/fightnight2-recomp exists.
 
 ### 2026-11-21 - Audio headless: sound from the logo through the fight
 

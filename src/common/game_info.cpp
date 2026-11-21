@@ -91,6 +91,7 @@ const app::GameInfo app::kGame = {
     .mouse_look = true,                   // the mouse plays the right stick: Total Punch Control's punches
     .default_keys = fn2::Keys,            // the keys above
     .texture_bound = fn2::ButtonPictures,  // buttons.cpp: today's pad and the keyboard's keys in the prompts
+    .auto_fills_screen = true,            // "from the screen's shape" fills an ultrawide screen (src/game/ultrawide.cpp)
     // optional, after these: .achievements (conditions on guest memory), .same_code (other releases' xbe SHA-1s with
     // the same code), .wheel (what a steering wheel's force feedback follows)
 };

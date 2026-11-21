@@ -9,9 +9,37 @@ Newest first. Each entry: date, what changed, what was learned, what's next.
   decoded by the runtime
 - Smoke: `scripts/smoke.sh` (scripts/pad/fight.txt) SMOKE OK; boot.txt alone fails it (130 draws, the main menu)
 - GitHub: hk21x/fightnight2-recomp, not created yet (local repository only); SDK at fork main c06f201
-- Windows: b574ce7 builds on recomp-vm; ready to run in `\\192.168.1.229\Testing\fightnight2-test-b574ce7`, not run yet
+- Windows: 58a9ed1 runs on GPU-VM (Arc): menus and two rounds of a fight, native 16:9, no crash; no sound there (no
+  audio device). `\\192.168.1.229\Testing\fightnight2-test-b574ce7` ready for Harry
+- Open: the game steps 0.02 s a frame for PAL 50 Hz but gets 60 Hz vertical blanks: about 20% fast (SDK fix)
 
 ## Log
+
+### 2026-11-21 - GPU-VM: a fight on the Arc; the game runs 20% fast (50 Hz game on 60 Hz vertical blanks)
+
+58a9ed1 (built by recomp-vm) on GPU-VM (Intel Arc A750, 1920x1080), in `C:\Testing\fightnight2-recomp` with the disc
+from `C:\ISOs`, started on the desktop by the scheduled task FN2Run (`C:\fn2ctl\run.ps1`: env.txt, shot.req, stop.req)
+and driven through `FN2_PAD_FILE=C:\fn2ctl\pad.txt` (src/common/test_pad.cpp, this commit's parent).
+- **Works:** the VP6 movies, title, autosave question, main menu, Play Now, Select Boxer and Select Venue, the "Tonight's
+  Fight" intro, two full rounds of Hopkins v Wright with right-stick punches landing, the pause menu, corner scenes
+  between rounds. 30 minutes, then a clean exit (code 0). No device loss, no crash, no warnings but one (below).
+- **Native widescreen:** the front end and the fight fill 16:9 with round circles and the HUD at the edges.
+- Frames: about 600 in 10 s, 1 or 2 over 25 ms; 356 MB of video memory; 29 pipelines. `SHOT` screenshots work.
+- **No sound on GPU-VM:** `XAudio2 unavailable` (the VM has no audio device), so sound is for Harry's PC.
+- Two small things to look at: a faint box edge left of Hopkins on Select Boxer and pale triangles over the venue
+  preview (both in the headless CPU picture too, so probably the game's art), and a pale-blue fragment beside Wright's
+  glove in a between-rounds close-up (Windows only so far).
+- **Timing bug [console]:** round 2 was on screen (HUD up) for 3:38 to 4:04 real time. In a headless fight, memory dumps
+  20.18 s and 18.70 s apart show a game-time float at 0x37DE1C advancing exactly 0.02 a frame (+24.000 over 1,200
+  frames, +22.198 over 1,110), so 1.19 s a second, while the millisecond counters 0x39D2C8 and 0x39D778 advance 1,000 a
+  second. The game creates a 640x576 device with refresh 0 (the default), which on the Xbox is PAL 50 Hz, and waits on
+  the vertical blank (BlockUntilVerticalBlank from 0x169200 and 0xCAC60); the runtime's vertical blank thread
+  (sdk runtime/xdk/d3d8.cpp VerticalBlank) always ticks at 60 Hz and presents are paced to 60. So the simulation likely
+  runs 20% fast. The game has no 60 Hz option of its own, and PAL 60 on (pal_console) does not change its mode.
+  Fix (SDK, all-games gate): vertical blanks and present pacing at 50 Hz for a 576-line (or 50 Hz) mode, ideally with
+  the runtime's frame blending for a 60 Hz screen. Harry to confirm the speed by eye on his PC first.
+
+Next: Harry plays the test build for sound and speed; then the 50 Hz vertical blank in the SDK.
 
 ### 2026-11-21 - Windows build passes (recomp-vm); widescreen looks native
 

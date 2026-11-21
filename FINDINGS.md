@@ -43,3 +43,15 @@ game's own code and data, with its addresses).
 ## Code
 - **[game]** sub_25AFA3 is SSE2 integer code (a quantiser loop) that the Xbox CPU cannot run: an unreachable path.
   Its five opcodes are left as traps in the recompiled code; none has fired.
+
+## Timing
+- **[console]** A 640x576 mode (refresh 0) is PAL 50 Hz on the Xbox. The runtime's vertical blanks are always 60 Hz.
+- **[game]** Creates 640x576 with FullScreen_RefreshRateInHz 0 whatever the PAL 60 flag says, and has no 60 Hz option.
+  Game time (float 0x37DE1C) advances 0.02 per frame; it waits on BlockUntilVerticalBlank (from 0x169200, 0xCAC60).
+  Real-time counters: 0x39D2C8, 0x39D778 (ms). Frame counters: 0x2C0C48 (presents), 0x2C05B8 (vertical blanks).
+
+## Windows
+- **[game]** Native 16:9: the game has `gWidescreenMode` (APT) and `bWidescreen` in its settings and fills 16:9 when
+  the video flags say widescreen.
+- **[game]** Right stick punches (Total Punch Control); START pauses (Resume, Instant Replay, Select Controller,
+  Settings, HUD, Fight Totals, Throw in the Towel).

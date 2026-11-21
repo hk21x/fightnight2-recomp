@@ -1,4 +1,9 @@
 #include "app/app.h"
+#include "core/input.h"
+
+namespace fn2 {
+void TestPad(int port, input::Pad& pad);  // test_pad.cpp: FN2_PAD_FILE
+}
 
 // what the runtime asks of the game; strings must be set, hooks may stay null
 const app::GameInfo app::kGame = {
@@ -18,7 +23,7 @@ const app::GameInfo app::kGame = {
     .window = nullptr,                    // the game window is up
     .message = nullptr,                   // window messages first; true takes one
     .ui = nullptr,                        // ImGui drawing each frame
-    .pad = nullptr,                       // changes a polled pad
+    .pad = fn2::TestPad,                  // FN2_PAD_FILE (tests): controller 1 held from a file
     .rumble = nullptr,                    // changes a rumble before it is set
     .languages = {1, 3, 4},               // English, German, French: locale\*.loc and the movies' .nfx, .ger, .fre
     .pal_console = true,                  // a PAL-only disc (region 4): a PAL console with PAL 60 Hz on

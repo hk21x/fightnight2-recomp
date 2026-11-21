@@ -9,7 +9,7 @@ Newest first. Each entry: date, what changed, what was learned, what's next.
   decoded by the runtime
 - Smoke: `scripts/smoke.sh` (scripts/pad/fight.txt) SMOKE OK; boot.txt alone fails it (130 draws, the main menu)
 - GitHub: hk21x/fightnight2-recomp, not created yet (local repository only); SDK at fork main c06f201
-- Windows: b574ce7 builds on recomp-vm; ready to run in \\\\192.168.1.229\\Testing\\fightnight2-test-b574ce7, not run yet
+- Windows: b574ce7 builds on recomp-vm; ready to run in `\\192.168.1.229\Testing\fightnight2-test-b574ce7`, not run yet
 
 ## Log
 

@@ -13,6 +13,15 @@ Newest first. Each entry: date, what changed, what was learned, what's next.
 
 ## Log
 
+### 2026-11-21 - A PAL console, and the disc's three languages
+
+`src/common/game_info.cpp`: `.pal_console = true` (a PAL-only disc, region 4, like True Crime, NightFire and EoN's PAL
+builds: AV region PAL-I with PAL 60 Hz on) and `.languages = {1, 3, 4}` (English, German, French: the disc's
+`locale` files and the movies' .nfx/.ger/.fre), so the settings window offers them.
+- Log: `kernel: game regions 4: a PAL (60 Hz) console`. The game creates the same 640x576 device either way
+  (interval 0 in the menus, 2 in the fight, so 30 fps at 60 Hz). SMOKE OK (menu 67, fight 294 draws a frame).
+- Not known yet: whether any game timing assumes 50 Hz. Check the fight clock against the wall clock on Windows.
+
 ### 2026-11-21 - Ghidra: no raw NV2A writes outside BeginPush; the SSE2 opcodes are an unreachable path
 
 Ghidra project `~/ghidra-projects/fightnight2` (game.exe from xbe2pe, 20,769 exports, full analysis).

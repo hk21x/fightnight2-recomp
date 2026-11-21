@@ -16,6 +16,25 @@ Newest first. Each entry: date, what changed, what was learned, what's next.
 
 ## Log
 
+### 2026-11-21 - GPU-VM unattended: keyboard play, a 15-minute fight, pause and quit; two fixes
+
+Harry asked for further steps diagnosed on GPU-VM without him. Driver (`C:\fn2ctl\run.ps1`, copy in .local/): the
+game's own scheduled task plays `cmd.txt` (key/down/up/wait); a key reaches the game only when the window is brought
+forward with an F24 tap before SetForegroundWindow (an Alt tap opened the window menu and ate keys).
+- **Keyboard:** boot to a fight on Enter alone; the prompts show ENTER, BKSP, C, ESC; Select Corner shows a keyboard and
+  mouse; W walks in, I/J/K/L throw punches (hits landed), Shift leans, Esc pauses, the arrows move menus.
+- **Soak:** 20 chunks of 40 s of random keyboard play (punches, moves, leans, blocks, the right mouse button) in one fight,
+  15 minutes: no crash, private memory flat at about 520 to 550 MB, the end-of-round replays letterboxed at 16:9 and the
+  corner scenes filling the screen.
+- **Fix 1:** the fight's menus (pause, throw in the towel) use their own A, a 32x32 P8 texture (0x0B, FNV
+  0249657C4873E4CD, palette applied at bind) the first pass missed; now replaced too. FN2_PICS_LOG applies P8 palettes.
+- **Fix 2:** quitting a fight left the frame filled, so Select Boxer stretched. The fight is now the arena's wide
+  views or the fight's own 2D (shapes through 0x125280: HUD, pause, towel; the APT front end never uses it): neither
+  for a quarter second holds 16:9 again. Seen on GPU-VM (163b7f1): pause full width, Select Boxer at 16:9 after quitting.
+- Polish: a prompt's key cap kept within the disc's width (ENTER crowded the menu text).
+- Checked: Game Modes > Hard Hits reaches Select Corner. Not reached: Career, Create Champ, My Gym (left for later).
+SMOKE OK.
+
 ### 2026-11-21 - GPU-VM at 2.4:1: menus and cutscenes at 16:9, the fight filling the screen
 
 99e55f3 (built by recomp-vm) on GPU-VM in a 1920x800 window, aspect auto. The front end is held at 16:9 from the

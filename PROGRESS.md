@@ -16,6 +16,20 @@ Newest first. Each entry: date, what changed, what was learned, what's next.
 
 ## Log
 
+### 2026-11-22 - Smooth motion: in-between frames in a fight, the clock unchanged
+
+Harry asked for a higher frame rate with the clock kept right. The game presents every 20 ms in a fight (50 fps at
+50 Hz, not 25 as assumed). The SDK's in-between frames (gpu/interp.cpp, GameInfo::step_interpolation) blend each
+step's vertex constants with the step before's and draw extra frames up to the frame cap; the game still steps 50
+times a second. Setting `smooth_motion` (on), only in a fight (fn2::InFight).
+- SDK (fork branch fn2-hold-aspect bf205db): no draw ever matched, because the game rotates three back buffers
+  (00A73000, 00BDC000, 0090A000) and the match key held the target's memory; presented surfaces now count as one target
+  (other targets keep their address, EoN's environment maps). And they switch on above GameInfo::vblank_hz, not 60.
+- GPU-VM (Arc, 1920x800, fps_cap 150, vsync off): 1,245 to 1,279 frames for about 500 steps each 10 s (2.5 to 3 a
+  step), 116 to 132 fps shown, the title's step 3 ms, a replay 2 ms; pictures clean in four shots (fight, round start,
+  a punch landing). At fps_cap 60 it plans one frame a step: no change from before.
+- Needs a cap of 100 or more (2 frames a step) to show: 100, 150, ... with vsync on a high refresh screen.
+
 ### 2026-11-21 - Harry's full fight: too fast, ultrawide boxed in; both fixed; on GitHub
 
 Harry created hk21x/fightnight2-recomp and played a whole fight on 163b7f1 at 3440x1440 ("works great"), with two

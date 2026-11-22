@@ -16,6 +16,19 @@ Newest first. Each entry: date, what changed, what was learned, what's next.
 
 ## Log
 
+### 2026-11-22 - Smooth motion and the ropes: a near-plane hold instead of special blending
+
+Harry: get the ropes working. The earlier fixes (leave the ropes unblended, or move them with the camera alone) put
+parts the game drew from one camera into frames drawn from another. Now the ropes blend like everything else, and a
+step whose rope sections reach the near plane (or whose matches in the step before did) is shown as drawn, with no
+frames in between: SDK GameInfo::interp_near_hold (fork fn2-hold-aspect dfc2bb1) checks each named draw's vertices
+(v0 SHORT3/FLOAT3/FLOAT4 through the program's position matrix c0-c3, gpu::MatrixProgram) as it is recorded.
+interp_unblended is gone. The rope program B0003131 reads v0 as SHORT3 (D3DVSDT 0x35), which the check needed.
+- Headless CPU-vs-CPU fights: the nearest rope vertex w is 62 (never at the near plane), so no step held.
+- GPU-VM 9750208, fps_cap 240, punching: 1,700-1,780 frames per 500 steps. 36 desktop shots and 177 consecutive frames
+  from XBE_CAPTURE_DIR/F3 (6 runs of 30): the ropes whole in every one. No step held in that run (the camera did not
+  pass through a rope); Harry's recording is what to compare against.
+
 ### 2026-11-22 - Smooth motion: the ring ropes, stopped after three attempts
 
 Harry: the ropes are floppy above 60 fps (his 240 fps recording: rope sections near the camera swept across the screen

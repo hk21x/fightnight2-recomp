@@ -16,6 +16,15 @@ Newest first. Each entry: date, what changed, what was learned, what's next.
 
 ## Log
 
+### 2026-11-22 - Harry's run of 0c79d15; blurred sides beside the 16:9 menus
+
+Harry: skip intro, modern buttons and mouse clicks in menus work; frame rate stays at 50 with smooth motion; the menus
+stay 16:9. His log: a 280 Hz display, fps_cap 60, "frames planned 1.00" (one frame a 20 ms step fits under 60): smooth
+motion needs a cap of 100 or more (the setting's help says so now). Menus: the frame is held at 16:9 because their
+backgrounds are 16:9 art; Juiced's GameInfo::bars_backdrop (SDK 52e445f, cherry-picked onto fn2-hold-aspect as
+65f976b, its local renamed from `small`, a Windows SDK macro, 6876345) shows a dimmed, blurred copy of the frame at
+the sides while held (fn2::FrameHeld). GPU-VM e4b208a at 2.4:1: the main menu with blurred sides. SMOKE OK.
+
 ### 2026-11-22 - Ultrawide HUD no longer stretched; achievements stopped after five attempts
 
 - **HUD stretched on ultrawide (fixed):** measured on GPU-VM, the fight's HUD box was 69x69 at 16:9 and 69x52 at 2.4:1:

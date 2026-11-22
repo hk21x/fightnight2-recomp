@@ -15,6 +15,8 @@ extern bool modern_buttons;                              // buttons.cpp
 bool InFight();                                          // src/game/ultrawide.cpp
 bool smooth_motion = true;                               // the setting
 bool skip_intro = false;                                 // the setting (src/game/movies.cpp)
+extern bool hide_hud;                                    // src/game/hud.cpp
+bool HudKey(void* hwnd, uint32_t msg, uintptr_t wp, intptr_t lp, intptr_t* result);
 
 
 // the fight steps 25 times a second (a present every second 50 Hz vertical blank): frames in between up to the frame cap,
@@ -66,6 +68,9 @@ std::array<uint16_t, 2> Keys(int c) {
 void Init() {
     if (const char* e = std::getenv("FN2_SKIP_INTRO"); e && *e) skip_intro = *e == '1';
     if (skip_intro) LOGR("fn2: the intro movies are skipped (skip_intro)");
+    if (const char* e = std::getenv("FN2_HIDE_HUD"); e && *e) hide_hud = *e == '1';
+    if (const char* e = std::getenv("FN2_SMOOTH_MOTION"); e && *e) smooth_motion = *e == '1';
+    if (hide_hud) LOGR("fn2: the HUD is hidden (hide_hud)");
     if (const char* e = std::getenv("FN2_MODERN_BUTTONS"); e && *e) {
         modern_buttons = *e == '1';
         LOGR("fn2: FN2_MODERN_BUTTONS=%c", *e);
@@ -90,6 +95,9 @@ const app::GameInfo app::kGame = {
          "White and Black); off, the original controller's. With the keyboard the keys show whatever this says."},
         {"skip_intro", &fn2::skip_intro, nullptr, "Skip intro movies",
          "Start at the title screen: the EA Sports logo and the intro movie are left out."},
+        {"hide_hud", &fn2::hide_hud, nullptr, "Hide the HUD",
+         "The fight's health and stamina bars and round card left out (the pause menu's HUD switch, held off). F9 in "
+         "play switches it."},
         {"smooth_motion", &fn2::smooth_motion, nullptr, "Smooth motion",
          "In a fight, frames in between the game's own (it moves 25 times a second) up to the frame cap; the game's speed "
          "is unchanged. Off, the fight is shown as the game draws it."},
@@ -99,7 +107,7 @@ const app::GameInfo app::kGame = {
     .init = fn2::Init,                    // after the settings load, before the window and boot
     .loaded = nullptr,                    // image in memory, before its entry point runs
     .window = nullptr,                    // the game window is up
-    .message = nullptr,                   // window messages first; true takes one
+    .message = fn2::HudKey,               // F9: hide_hud
     .ui = nullptr,                        // ImGui drawing each frame
     .pad = fn2::TestPad,                  // FN2_PAD_FILE (tests): controller 1 held from a file
     .rumble = nullptr,                    // changes a rumble before it is set

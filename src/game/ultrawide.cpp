@@ -100,12 +100,14 @@ bool InFight() {
 
 // each texture bound (GameInfo::texture_bound, src/common/buttons.cpp): every frame binds some, in the front end too,
 // where no 3D view may be set up; at most once in 16 ms
+void HudTick();  // src/game/hud.cpp
 void UltrawideTick() {
     static Clock::time_point last;
     const auto now = Clock::now();
     if (now - last < std::chrono::milliseconds(16)) return;
     last = now;
     Decide();
+    HudTick();
 }
 }  // namespace fn2
 

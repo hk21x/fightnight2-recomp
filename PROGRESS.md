@@ -3,18 +3,43 @@
 Newest first. Each entry: date, what changed, what was learned, what's next.
 
 ## Status
-- Milestone: 1 - set up; headless from a first boot through the front end into a fight, with no game code
+- Milestone: 3 - the whole game plays on Windows: Play Now, Career (sparring, fights, results saved), Create Champ,
+  My Gym, My Corner; no traps seen headless or on GPU-VM
 - XDK: 5849 QFE 1 (D3D8 not LTCG), 130 of 278 functions, 10 of 13 data from the scan; 2 more by hand
 - Push buffers: none recorded (no RunPushBuffer/CreatePushBuffer, Ghidra scan); EAGL's BeginPush/EndPush at 9 sites,
   decoded by the runtime
-- Smoke: `scripts/smoke.sh` (scripts/pad/fight.txt) SMOKE OK; boot.txt alone fails it (130 draws, the main menu)
-- GitHub: hk21x/fightnight2-recomp (private), main pushed; SDK on fork branch fn2-hold-aspect 8fa489f (fork main
-  5af29c1 + HoldAspect for any title + GameInfo::vblank_hz), to gate before fork main
-- Windows: 58a9ed1 runs on GPU-VM (Arc): menus and two rounds of a fight, native 16:9, no crash; no sound there (no
-  audio device). `\\192.168.1.229\Testing\fightnight2-test-b574ce7` ready for Harry
+- Smoke: `scripts/smoke.sh` (scripts/pad/fight.txt) SMOKE OK
+- GitHub: hk21x/fightnight2-recomp (private), main pushed; SDK on fork branch fn2-hold-aspect 6a3d9df (fork main
+  5af29c1 + FN2's runtime changes), to gate before fork main
+- Windows: 8303063 on GPU-VM (Arc, 1920x800, fps_cap 240): 40 minutes of every mode, smooth motion 170-210 fps in play;
+  no sound there (no audio device). `\\192.168.1.229\Testing\fightnight2-test-8303063` ready for Harry
 - PAL 50 Hz: vblank_hz = 50, game time at real speed
+- Open: achievements (stopped), LT/RT tab markers still the old pad's L and R, video memory kept after textures are
+  freed (1.07 GB after 40 min), the gym drills' instruction popups held at 16:9
 
 ## Log
+
+### 2026-11-22 - Every mode on GPU-VM; the pause menu's untextured pieces kept 16:9
+
+Harry away; tests with no one at the pad (GPU-VM, scripted pad and keys, desktop shots), build 605cf6b then 8303063:
+- **Icon:** launcher/icon.ico from Harry's badge (cut from its black, 256 to 16): in the title bar and taskbar.
+- **Saves:** a profile made on 2026-11-21 loads after restarts; a new Career (Rebuild Legend: Hopkins) is there after a
+  restart; sparring, a fight's result and a created boxer each write profile.sav (19:23, 19:34, 19:38).
+- **Career:** Career Central, Trophy Case, Schedule (a fight booked), sparring (jabs, hooks, uppercuts landed from the
+  keyboard: IJKL gestures), Training Complete and its unlock, Go Fight: four 2-minute amateur rounds against Romero to
+  the judges' scores, corner scenes and round stats, Fight Totals, back to Career Central at 0-1-0, week 5, $300.
+- **Create Champ:** all seven tabs (info, physique, build, head shape grid, head features, accessories, ratings), the
+  on-screen typewriter, accept and save. **My Gym:** weight lifting, heavy bag (scores), combo dummy (scores).
+  **My Corner:** Options, Settings, Controls page list, Profile Manager.
+- **Found and fixed:** on a wide frame the pause menu's (and every popup's) orange side strips, selection brackets and
+  row bands stood out to the sides of the 16:9 box. They are untextured 2D drawn by program B0101FB1, which computes w
+  first, then x, y (beside an rcc), z; gpu::MatrixProgram only knew x, y, z, w in order, so they were never squeezed.
+  SDK fork fn2-hold-aspect 6a3d9df: the four dp4s in any order, each into its own lane of oPos. Seen fixed on 8303063
+  (pause, quit training, training tips, the gym's pause). SMOKE OK.
+- **Seen, not fixed:** Create Champ's tab markers show the old pad's L and R (modern: LT and RT); the gym drills'
+  instruction popups are held at 16:9 with the blurred sides until the drill starts; video memory 584 MB through the
+  fights, 951 MB after Create Champ (1,870 textures), 1,073 MB with 519 textures left (kept, not returned; a longer
+  soak would tell). Log: no errors but the VM's missing audio device; 1 or 2 frames a 10 s over 30 ms.
 
 ### 2026-11-22 - The ropes: matched no more, camera's move only, held at either camera's near plane
 

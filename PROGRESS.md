@@ -30,6 +30,13 @@ gets the program's code hash; RopeDraw names 4D20D4D40AC2A60F with 653 indices a
 Headless: "the ring ropes named" in the fight, steps held as before. SMOKE OK. Main 9078288; Windows build asked.
 GPU-VM 9078288, the same Play Now at the Staples Center, three bursts of 30 renderer frames while punching: "the ring
 ropes named" in the log; every rope whole and moving smoothly in all 90 frames.
+More places, GPU-VM 9078288, smooth motion on, bursts of 30 renderer frames while punching (F3 in the key script):
+County Fairgrounds (3 bursts; all 20 ring sections named, 653 indices, every in-between rope section moved by the
+camera's move: interp_table 337 of 337 "derived"), The Elevese (3 bursts), My Gym sparring (1 burst in play, 2 on a
+trainer tip). Ropes whole and smooth in all of them. One frame at the Fairgrounds (the first of a burst) has a dark
+rope-like stick near the camera at the bottom left, gone the next frame; the same kind of piece shows with smooth
+motion off, so taken for the game's own near-camera clipping, not proven. The walk-in at the Fairgrounds draws only 2
+rope sections.
 
 ### 2026-11-22 - Every mode on GPU-VM; the pause menu's untextured pieces kept 16:9
 

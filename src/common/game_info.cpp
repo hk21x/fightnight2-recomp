@@ -1,6 +1,8 @@
 #include <array>
+#include <cctype>
 #include <cstdint>
 #include <cstdlib>
+#include <string>
 
 #include "app/app.h"
 #include "core/input.h"
@@ -12,6 +14,8 @@ bool ButtonPictures(uint32_t header, uint32_t palette);  // buttons.cpp
 extern bool modern_buttons;                              // buttons.cpp
 bool InFight();                                          // src/game/ultrawide.cpp
 bool smooth_motion = true;                               // the setting
+bool skip_intro = false;                                 // the setting (src/game/movies.cpp)
+
 
 // the fight steps 25 times a second (a present every second 50 Hz vertical blank): frames in between up to the frame cap,
 // in a fight only (the front end's APT menus stay as drawn)
@@ -60,6 +64,8 @@ std::array<uint16_t, 2> Keys(int c) {
 
 // after the settings load: FN2_MODERN_BUTTONS (1 or 0) overrides it, for the headless harness, which has no settings file
 void Init() {
+    if (const char* e = std::getenv("FN2_SKIP_INTRO"); e && *e) skip_intro = *e == '1';
+    if (skip_intro) LOGR("fn2: the intro movies are skipped (skip_intro)");
     if (const char* e = std::getenv("FN2_MODERN_BUTTONS"); e && *e) {
         modern_buttons = *e == '1';
         LOGR("fn2: FN2_MODERN_BUTTONS=%c", *e);
@@ -82,6 +88,8 @@ const app::GameInfo app::kGame = {
         {"modern_buttons", &fn2::modern_buttons, nullptr, "Modern button pictures",
          "Today's Xbox pad in the prompts and on the controls page (A B X Y on dark discs, Menu for START, LB and RB for "
          "White and Black); off, the original controller's. With the keyboard the keys show whatever this says."},
+        {"skip_intro", &fn2::skip_intro, nullptr, "Skip intro movies",
+         "Start at the title screen: the EA Sports logo and the intro movie are left out."},
         {"smooth_motion", &fn2::smooth_motion, nullptr, "Smooth motion",
          "In a fight, frames in between the game's own (it moves 25 times a second) up to the frame cap; the game's speed "
          "is unchanged. Off, the fight is shown as the game draws it."},
@@ -95,6 +103,7 @@ const app::GameInfo app::kGame = {
     .ui = nullptr,                        // ImGui drawing each frame
     .pad = fn2::TestPad,                  // FN2_PAD_FILE (tests): controller 1 held from a file
     .rumble = nullptr,                    // changes a rumble before it is set
+    .sharpen_2d = true,                   // the menus' TTF text, the HUD and the button pictures redrawn sharp (Settings::sharp_2d)
     .languages = {1, 3, 4},               // English, German, French: locale\*.loc and the movies' .nfx, .ger, .fre
     .pal_console = true,                  // a PAL-only disc (region 4): a PAL console with PAL 60 Hz on
     .mouse_look = true,                   // the mouse plays the right stick: Total Punch Control's punches

@@ -122,6 +122,7 @@ const app::GameInfo app::kGame = {
     .default_keys = fn2::Keys,            // the keys above
     .texture_bound = fn2::ButtonPictures,  // buttons.cpp: today's pad and the keyboard's keys in the prompts
     .step_interpolation = fn2::SmoothNow,  // smooth_motion: frames in between in a fight
+    .interp_pieces = false,               // the ring ropes are rebuilt each step: unmatched draws stay at their step
     .auto_fills_screen = true,            // "from the screen's shape" fills an ultrawide screen (src/game/ultrawide.cpp)
     .aspect_live = true,                  // the aspect setting applies at once (src/game/ultrawide.cpp)
     .frame_aspect = fn2::FrameShape,      // the front end at 16:9, a fight at the setting's shape

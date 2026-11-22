@@ -131,12 +131,14 @@ X86_FUNC(sub_00125280) {
         // wider than the 4:3 layout by far, a strip, at least partly on screen
         if (x1 - x0 > 800.0f && y1 - y0 < 120.0f && bottom > 0.5f && top < 479.5f) g_bar = Clock::now();
     }
-    // hud_edges off on a frame wider than 16:9: the fight's HUD (2D shapes) kept within the middle 16:9, each piece to
-    // one side moved in to its 16:9 distance from that edge (gpu::HudMove, State::hud_layout)
+    // hud_edges off on a frame wider than 16:9: the fight's HUD kept within the middle 16:9. Its pieces are drawn by
+    // flat matrix programs laid out across the whole frame (at its edges), so each to one side is moved in by
+    // (1 - 16:9 / frame) half widths: gpu::HudMove moves (layout / frame - 1) half widths outwards, so layout =
+    // 2 frame - 16:9
     const bool pull = !fn2::hud_edges && app::FrameAspect() > kWide + 1e-3f;
     if (pull) {
         std::lock_guard<std::recursive_mutex> lock(d3d::Lock());
-        d3d::State().hud_layout = kWide;
+        d3d::State().hud_layout = 2.0f * app::FrameAspect() - kWide;
     }
     __imp__sub_00125280(ctx, base);
     if (pull) {

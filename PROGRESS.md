@@ -16,6 +16,24 @@ Newest first. Each entry: date, what changed, what was learned, what's next.
 
 ## Log
 
+### 2026-11-22 - Quality of life: skip intro, hide HUD, sharp 2D, mouse in menus; HUD position and achievements not done
+
+Harry asked for items 1 to 6 of the list of other ports' features. Branch qol.
+- **Skip intro movies** (`skip_intro`): hiding the files does not work (the game asks for a missing movie for ever), so
+  src/game/movies.cpp returns from the front end movie player 0xCD9B0 (stdcall name, 0, 0; ret 12) for easports and
+  intro. GPU-VM (6cd9b45): straight to the title.
+- **Hide the HUD** (`hide_hud`, F9): the game's own bHud setting is bit 0 of 0x37FFEF (settings 0x37FFD0 from 0x1659B0,
+  +0x1C bit 24; 0xC60D0 saves it as "bHud"; dumps either side of the pause menu's switch read 0x3F, 0x3E). Held clear
+  while on. Headless fight: no HUD. (0x39DF36/46 are only the pause menu's item; 0x37E24C a frame parity.)
+- **Sharp 2D** (`sharpen_2d`): the SDK's sharp redraw of 2D textures, on (Settings::sharp_2d).
+- **Mouse in menus** (src/common/menu_mouse.cpp): left click A, right click B, wheel up and down, out of a fight only (the
+  mouse punches and its right button blocks in one). The APT menus have no pointer, so no on-screen cursor.
+- **HUD position (not done):** a "HUD at the screen's edges" setting moving the pieces in with State::hud_layout did
+  nothing on GPU-VM (the fight's bars are not HudMove's flat matrix pieces); removed. The HUD stays at the edges.
+- **Achievements (not done):** found the Career boxer's record (bytes per boxer: wins +5, losses +6, draws +7, KOs +8,
+  written as nRecW/L/D/KO by 0xAA300), not yet the pointer to the current boxer nor a fight's result; needs a Career
+  boxer to verify on.
+
 ### 2026-11-22 - Smooth motion: in-between frames in a fight, the clock unchanged
 
 Harry asked for a higher frame rate with the clock kept right. The game presents every 20 ms in a fight (50 fps at

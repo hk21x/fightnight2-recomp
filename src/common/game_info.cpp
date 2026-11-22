@@ -14,6 +14,7 @@ bool ButtonPictures(uint32_t header, uint32_t palette);  // buttons.cpp
 extern bool modern_buttons;                              // buttons.cpp
 bool InFight();                                          // src/game/ultrawide.cpp
 bool FrameHeld();                                        // src/game/ultrawide.cpp
+float FrameShape(float chosen);                          // src/game/ultrawide.cpp
 bool smooth_motion = true;                               // the setting
 bool skip_intro = false;                                 // the setting (src/game/movies.cpp)
 extern bool hide_hud;                                    // src/game/hud.cpp
@@ -122,6 +123,8 @@ const app::GameInfo app::kGame = {
     .texture_bound = fn2::ButtonPictures,  // buttons.cpp: today's pad and the keyboard's keys in the prompts
     .step_interpolation = fn2::SmoothNow,  // smooth_motion: frames in between in a fight
     .auto_fills_screen = true,            // "from the screen's shape" fills an ultrawide screen (src/game/ultrawide.cpp)
+    .aspect_live = true,                  // the aspect setting applies at once (src/game/ultrawide.cpp)
+    .frame_aspect = fn2::FrameShape,      // the front end at 16:9, a fight at the setting's shape
     .bars_backdrop = fn2::FrameHeld,      // the menus and cutscenes at 16:9: a dimmed, blurred copy of the frame at the sides
     .vblank_hz = 50,                      // PAL 50 Hz: the game steps a 50th of a second a frame (0x37DE1C +0.02)
     // optional, after these: .achievements (conditions on guest memory), .same_code (other releases' xbe SHA-1s with

@@ -1,30 +1,24 @@
-// Ultrawide: the fights at the shape the frame is shown at, the front end and the cutscenes at 16:9.
+// Ultrawide: the fights at the shape the aspect setting gives, the front end at 16:9; a change applies at once.
 //
 // Every 3D view's projection is built by 0x213400 (thiscall on the camera: the horizontal field of view in degrees,
 // the aspect, near, far), which also builds the camera's culling planes from the same two (+0x158..+0x174), about once
-// a frame. In its widescreen mode (the console reporting a widescreen TV) the views' set-up 0x133040 widens the 4:3
-// field of view by 4/3 in its tangent (DAT 0x2EA514) and passes 16:9 (0x3FE38E39); the 4:3 views (0x12B510, 0x12AD10,
-// 0x2138C0, 0x132EC0: pictures drawn into textures) pass 4/3. A view asked at 16:9 is given the frame's shape instead,
-// its field of view widened the same way (tan(fov/2) times frame / (16:9)), so a frame wider than 16:9 shows more to
-// the sides instead of stretching, and the culling widens with it. The HUD is 16:9 2D, kept so in the middle by the
-// renderers.
+// a frame. In its widescreen mode (the console reporting a widescreen TV, always: GameInfo::aspect_live) the views'
+// set-up 0x133040 widens the 4:3 field of view by 4/3 in its tangent (DAT 0x2EA514) and passes 16:9 (0x3FE38E39); the
+// 4:3 views (0x12B510, 0x12AD10, 0x2138C0, 0x132EC0: pictures drawn into textures) pass 4/3. A view asked at 16:9 is
+// given the frame's shape instead, its field of view widened the same way (tan(fov/2) times frame / (16:9)), so a
+// frame wider than 16:9 shows more to the sides instead of stretching, and the culling widens with it. The fight's 2D
+// is 16:9, kept so in the middle by the renderers.
 //
 // The front end is 2D laid out for 16:9 over full-screen backgrounds, which would stretch; its 3D (the boxers on the
 // menus) is seen through a narrow lens, 8 degrees across, where the arena's cameras (the fight's 57.8, the walk-ins'
-// 10 to 110) are wide. So the frame is held at 16:9 (app::HoldAspect), its sides black, except while a 16:9 view wider
-// than 20 degrees has been set up in the last quarter second, and for 300 ms without a break before that. It stays
-// filled while the fight's own 2D is drawn (its HUD, pause, throw in the towel: shapes through 0x125280, which the
-// front end's menus, drawn by APT, never use; no view is set up while paused) and is held again by a cutscene's bars, a
-// menu's narrow view, or neither the arena nor any shape in the last quarter second (quitting to Select Boxer, whose
-// boxers are drawn into 4:3 textures).
-//
-// Cutscenes: the in-engine ones (the walk-ins, "Tonight's Fight", the corners between rounds, replays) are letterboxed
-// by four untextured shapes 854 wide (480 x 16:9, from x -107 in the game's 640x480 layout), 33.5 high, sliding in
-// from above and below; the shapes go through the 2D shape drawer 0x125280 (fastcall, the shape in ecx: +0x25 shown,
-// +0x30 its points, +0x34 the first, 16 bytes each, +0x10/+0x14 its place, +0xE4 its texture or 0). While such a bar is
-// on screen the frame is held at 16:9 too, so a cutscene keeps the shape it was made for. The decision is made each
-// bind's time (at most every 16 ms); the views follow from their next set-up.
+// 10 to 110) are wide. So the frame is 16:9 there (GameInfo::frame_aspect, a blurred copy at its sides:
+// bars_backdrop) and the setting's shape in a fight: from when 16:9 views wider than 20 degrees have been set up for
+// 300 ms on end, until a menu's narrow view or neither those views nor the fight's own 2D (shapes through 0x125280,
+// which the front end's APT menus never use) for a second (quitting to Select Boxer). In-engine cutscenes (walk-ins,
+// replays, knockdowns, round ends) are the arena's 3D and fill the screen too, their letterbox bars (untextured
+// shapes 854 wide through 0x125280) reaching its sides. The decision is made each bind's time (at most every 16 ms).
 #include <algorithm>
+#include <atomic>
 #include <chrono>
 #include <cmath>
 #include <cstdint>
@@ -55,45 +49,37 @@ Clock::time_point g_arena;  // a wide 16:9 view (the arena's) last set up
 Clock::time_point g_since;  // since when they have been set up without a break
 Clock::time_point g_narrow; // a narrow 16:9 view (a menu's boxer) last set up
 Clock::time_point g_shape;  // a 2D shape drawn (the fight's HUD, pause, throw in the towel; not the front end's menus)
-bool g_held = false;        // the frame held at 16:9
-float g_free = 0;           // the frame's shape while not held
+std::atomic<bool> g_front{true};  // the front end (or a load between): the frame at 16:9; a fight: the setting's shape
+std::atomic<float> g_chosen{0};   // the aspect setting's shape as last asked (GameInfo::frame_aspect)
 
 bool Recent(Clock::time_point t) { return Clock::now() - t < std::chrono::milliseconds(250); }
 
-// held unless the arena is in view and no cutscene is; only ever on a frame wider than 16:9
+// in the front end until the arena's views have been set up for 300 ms on end (a menu's one wide view as it opens is
+// not a fight); back in it on a menu's narrow boxer view, or neither the arena's views nor the fight's 2D for a second
+// (a cut between cameras, a load inside the fight, is shorter; the pause menu leaves the camera alone and draws its 2D).
+// Decided whatever the aspect setting, so a change to it in play applies at once
 void Decide() {
-    static bool first = true;
-    if (!g_held) g_free = app::FrameAspect();
-    if (first) {  // the game starts in the front end
-        first = false;
-        if (g_free > kWide + 1e-3f) {
-            g_held = true;
-            app::HoldAspect(kWide);
-            LOGR("fn2: the front end: the frame held at 16:9");
-        }
-        return;
-    }
-    // into a fight: the arena for 300 ms on end (a menu's one wide view as it opens is not one); out of it: a cutscene's
-    // bars or a menu's boxer, not the arena's views stopping (the pause menu draws the arena still, its camera unchanged)
-    const bool cutscene = Recent(g_bar), arena = Recent(g_arena) && Clock::now() - g_since > std::chrono::milliseconds(300);
-    // left: neither for a second (a cut between cameras, a load inside the fight, is shorter)
     const auto now = Clock::now();
+    const bool arena = Recent(g_arena) && now - g_since > std::chrono::milliseconds(300);
     const bool left = now - g_arena > std::chrono::seconds(1) && now - g_shape > std::chrono::seconds(1);
-    // a cutscene is 3D through the arena's cameras, widened as play is: it fills the screen too, its letterbox bars
-    // (854 wide, past both edges of the 640 layout) reaching the screen's sides (GameInfo::edge_fills)
-    (void)cutscene;
-    const bool hold = g_free > kWide + 1e-3f && (g_held ? !arena : Recent(g_narrow) || left);
-    if (hold == g_held) return;
-    g_held = hold;
-    app::HoldAspect(hold ? kWide : 0.0f);
-    LOGR("fn2: %s", hold ? (cutscene ? "a cutscene: the frame held at 16:9" : "the front end: the frame held at 16:9")
-                         : "the fight: the frame at the screen's shape");
+    const bool front = g_front ? !arena : Recent(g_narrow) || left;
+    if (front == g_front) return;
+    g_front = front;
+    LOGR("fn2: %s", front ? "the front end: the frame at 16:9" : "the fight: the frame at the setting's shape");
 }
 }  // namespace
 
 namespace fn2 {
 // the frame held at 16:9 (the front end, a cutscene): GameInfo::bars_backdrop, a blurred copy of it at the sides
-bool FrameHeld() { return g_held; }
+bool FrameHeld() { return g_front && g_chosen > kWide + 1e-3f; }
+
+// GameInfo::frame_aspect (aspect_live: every aspect choice applies at once, the console a widescreen TV): the front
+// end at 16:9 (its 2D is 16:9 art), a fight at the setting's shape; never under 16:9, the game's 2D being laid out for
+// 16:9 whatever is chosen (a 4:3 choice shows 16:9)
+float FrameShape(float chosen) {
+    g_chosen = chosen;
+    return g_front ? kWide : std::max(chosen, kWide);
+}
 
 // in a fight (src/common/game_info.cpp: in-between frames only there): the arena's views or the fight's own 2D lately
 bool InFight() {

@@ -33,7 +33,6 @@
 #include "app/app.h"
 #include "core/log.h"
 #include "kernel/kernel.h"
-#include "xdk/d3d8.h"
 #include "xdk/hle.h"
 
 namespace fn2 {
@@ -131,19 +130,28 @@ X86_FUNC(sub_00125280) {
         // wider than the 4:3 layout by far, a strip, at least partly on screen
         if (x1 - x0 > 800.0f && y1 - y0 < 120.0f && bottom > 0.5f && top < 479.5f) g_bar = Clock::now();
     }
-    // the fight's 2D (HUD, round card) is laid out for 16:9 and kept that shape in the middle of a wider frame
-    // (GameInfo::squeeze_screen_programs: its pieces are drawn by flat matrix programs); with hud_edges each piece to one
-    // side is moved out to keep its 16:9 distance from that edge (State::hud_layout, gpu::HudMove), its shape kept
-    const bool spread = fn2::hud_edges && app::FrameAspect() > kWide + 1e-3f;
-    if (spread) {
-        std::lock_guard<std::recursive_mutex> lock(d3d::Lock());
-        d3d::State().hud_layout = kWide;
+    // the fight's 2D (HUD, round card) is laid out for 16:9 (x -107 to 747 in its 640 wide layout) and kept that shape in
+    // the middle of a wider frame (GameInfo::squeeze_screen_programs: its pieces are drawn by flat matrix programs). With
+    // hud_edges a piece to one side (its middle over 80 units from the centre, narrower than the layout) is moved out to
+    // keep its 16:9 distance from that edge: by 427 (frame / 16:9 - 1) layout units, its place (+0x10) set for the draw
+    // and put back. (State::hud_layout cannot: these pieces are drawn depth tested.)
+    float moved = 0;
+    const float frame = app::FrameAspect();
+    if (fn2::hud_edges && frame > kWide + 1e-3f && kernel::G<uint8_t>(o + 0x25) && kernel::G<uint8_t>(o + 0x30)) {
+        const uint32_t pts = kernel::R32(o + 0xE4) ? o + 0x74 - 0x40 : o + 0x34;
+        float x0 = F32(pts), x1 = x0;
+        for (uint32_t i = 1; i < kernel::G<uint8_t>(o + 0x30) && i < 8; i++) {
+            const float x = F32(pts + i * 16);
+            x0 = std::min(x0, x), x1 = std::max(x1, x);
+        }
+        const float mid = F32(o + 0x10) + (x0 + x1) / 2;
+        if (x1 - x0 < 400.0f && std::fabs(mid - 320.0f) > 80.0f) {
+            moved = 427.0f * (frame / kWide - 1.0f) * (mid < 320.0f ? -1.0f : 1.0f);
+            W(o + 0x10, F32(o + 0x10) + moved);
+        }
     }
     __imp__sub_00125280(ctx, base);
-    if (spread) {
-        std::lock_guard<std::recursive_mutex> lock(d3d::Lock());
-        d3d::State().hud_layout = 0;
-    }
+    if (moved != 0) W(o + 0x10, F32(o + 0x10) - moved);
 }
 
 // (camera; fov degrees, aspect, near, far), ret 0x10

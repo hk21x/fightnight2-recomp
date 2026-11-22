@@ -16,6 +16,24 @@ Newest first. Each entry: date, what changed, what was learned, what's next.
 
 ## Log
 
+### 2026-11-22 - Smooth motion: the ring ropes, stopped after three attempts
+
+Harry: the ropes are floppy above 60 fps (his 240 fps recording: rope sections near the camera swept across the screen
+at wrong angles). The ropes are 49 draws alike (vertex program B0003131, texture 81985300, 653 indices), told apart
+only by their matrices; the game rebuilds them each step. GPU-VM (Arc, fps_cap 240) runs a fight at 160 to 180 fps.
+1. `interp_pieces` off (SDK GameInfo::interp_pieces): unmatched draws no longer take the camera's move. Headless the
+   ropes stayed whole; Harry's recording still showed them flying.
+2. The ropes unblended, drawn at the step's place (SDK GameInfo::interp_unblended). GPU-VM: near rope sections floated
+   beside the ring, ending in mid-air: the step's camera against the in-between camera the rest is drawn from.
+3. The ropes moved by the camera's move alone (interp_unblended draws derive `was` from the most-voted camera move of
+   their target). GPU-VM 6e71dab: still floating near sections in front of the boxers.
+Ruled out: mismatched sections (in-order and nearest-matrix matching agree on every sample), the "turning" path (0.15%
+of rope matches). With smooth motion off the camera also passes close behind the ropes, but the sections are whole.
+Thinking: the sections near the camera are clipped by the near plane; an in-between matrix (blended, or the camera's
+move applied to the step's) puts their clipped ends somewhere the game never drew them. A fix probably means not
+blending a frame whose camera is that close to a rope (hold the step's whole picture), or the camera's real position.
+Smooth motion is still on by default; the ropes look right with it off.
+
 ### 2026-11-22 - Harry's run of 0c79d15; blurred sides beside the 16:9 menus
 
 Harry: skip intro, modern buttons and mouse clicks in menus work; frame rate stays at 50 with smooth motion; the menus

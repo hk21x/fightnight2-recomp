@@ -12,7 +12,10 @@
 
 namespace fn2 {
 
+void MenuMouse(input::Pad& pad);  // menu_mouse.cpp
+
 void TestPad(int port, input::Pad& pad) {
+    if (port == 0) MenuMouse(pad);
     static const char* path = std::getenv("FN2_PAD_FILE");
     if (!path || !*path || port != 0) return;
     static int every = 0;

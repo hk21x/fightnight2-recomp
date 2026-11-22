@@ -16,6 +16,28 @@ Newest first. Each entry: date, what changed, what was learned, what's next.
 
 ## Log
 
+### 2026-11-22 - Ultrawide HUD no longer stretched; achievements stopped after five attempts
+
+- **HUD stretched on ultrawide (fixed):** measured on GPU-VM, the fight's HUD box was 69x69 at 16:9 and 69x52 at 2.4:1:
+  stretched 1.33 times across. It is an APT overlay movie drawn through EAGL's model drawer (0x98270 > 0x217F80, a 2D
+  camera at 0x362028) with flat matrix programs, which the SDK squeezes only with `squeeze_screen_programs`, now on.
+  GPU-VM 88f02aa: the box square (50x52), the HUD at its 16:9 place in the middle. A "HUD at the screen's edges" option
+  was tried twice (State::hud_layout: skipped, the HUD draws are depth tested; moving shapes in 0x125280: the HUD is not
+  drawn there, only the round card and letterbox) and dropped: it would mean moving the APT movie's own objects.
+- **Achievements (stopped, 5 attempts):** need a fight's result and the player's boxer.
+  1. Int/short/byte counters rising with 20 scripted punches: only sound slots (0x3453F0 table) and input buffers.
+  2. The Fight Totals screen's numbers (Hopkins 14/6, Wright 14/10, haymakers 6/2 and 12/9) as a fingerprint in
+     virtual and physical memory: no clean block (the totals look computed from a punch log).
+  3. A judges' decision (39-37 on three cards, rounds 10,10,10,9 / 9,9,9,10) in either layout: no match but textures.
+  4. APT functions FEPM_Result1-4 (0x98FF0 > 0xD3BE0): the memory card dialog's choices, not the fight.
+  5. The crowd's fight messages, 0x1732D0 (thiscall: crowd, message; type at +4): 0 fight start, 1 round end, 2
+     knockdown, 3-7 the outcome (C_FightDecision), 8 KO moment, 9 before the outcome. They name objects 0x82E85000 and
+     0x82E85120 (globals 0x37FC8C, 0x37FC90, 0x37FC7C), but those are allocator blocks, not boxer records, so no winner.
+  Useful for a next try: with no corner picked in Select Corner both boxers are the computer's and a fight plays to its
+  end headless (four 1-minute rounds with the settings 0x37FFEC bits 18-23 cleared, about 8 minutes); with player 1 in
+  a corner, Play Now offers training first (Focus, Quick, Skip). Career boxer records: wins +5, losses +6, draws +7, KOs
+  +8 (0xAA300 saves them as nRecW/L/D/KO). Next: a write watch (gdb) on the Fight Totals' source when a punch lands.
+
 ### 2026-11-22 - Quality of life: skip intro, hide HUD, sharp 2D, mouse in menus; HUD position and achievements not done
 
 Harry asked for items 1 to 6 of the list of other ports' features. Branch qol.

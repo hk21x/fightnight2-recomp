@@ -16,6 +16,7 @@ bool InFight();                                          // src/game/ultrawide.c
 bool smooth_motion = true;                               // the setting
 bool skip_intro = false;                                 // the setting (src/game/movies.cpp)
 extern bool hide_hud;                                    // src/game/hud.cpp
+bool hud_edges = true;                                   // the setting (src/game/ultrawide.cpp)
 bool HudKey(void* hwnd, uint32_t msg, uintptr_t wp, intptr_t lp, intptr_t* result);
 
 
@@ -70,6 +71,7 @@ void Init() {
     if (skip_intro) LOGR("fn2: the intro movies are skipped (skip_intro)");
     if (const char* e = std::getenv("FN2_HIDE_HUD"); e && *e) hide_hud = *e == '1';
     if (const char* e = std::getenv("FN2_SMOOTH_MOTION"); e && *e) smooth_motion = *e == '1';
+    if (const char* e = std::getenv("FN2_HUD_EDGES"); e && *e) hud_edges = *e == '1';
     if (hide_hud) LOGR("fn2: the HUD is hidden (hide_hud)");
     if (const char* e = std::getenv("FN2_MODERN_BUTTONS"); e && *e) {
         modern_buttons = *e == '1';
@@ -98,6 +100,9 @@ const app::GameInfo app::kGame = {
         {"hide_hud", &fn2::hide_hud, nullptr, "Hide the HUD",
          "The fight's health and stamina bars and round card left out (the pause menu's HUD switch, held off). F9 in "
          "play switches it."},
+        {"hud_edges", &fn2::hud_edges, nullptr, "HUD at the screen's edges",
+         "On a screen wider than 16:9 the fight's health and stamina bars sit in its corners; off, they stay where they "
+         "are on a 16:9 screen. Either way they keep their shape."},
         {"smooth_motion", &fn2::smooth_motion, nullptr, "Smooth motion",
          "In a fight, frames in between the game's own (it moves 25 times a second) up to the frame cap; the game's speed "
          "is unchanged. Off, the fight is shown as the game draws it."},
@@ -111,6 +116,7 @@ const app::GameInfo app::kGame = {
     .ui = nullptr,                        // ImGui drawing each frame
     .pad = fn2::TestPad,                  // FN2_PAD_FILE (tests): controller 1 held from a file
     .rumble = nullptr,                    // changes a rumble before it is set
+    .squeeze_screen_programs = true,      // the 2D drawn by flat matrix programs (the fight's HUD) kept 16:9 on a wider frame
     .sharpen_2d = true,                   // the menus' TTF text, the HUD and the button pictures redrawn sharp (Settings::sharp_2d)
     .languages = {1, 3, 4},               // English, German, French: locale\*.loc and the movies' .nfx, .ger, .fre
     .pal_console = true,                  // a PAL-only disc (region 4): a PAL console with PAL 60 Hz on

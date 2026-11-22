@@ -21,9 +21,29 @@ extern bool hide_hud;                                    // src/game/hud.cpp
 bool HudKey(void* hwnd, uint32_t msg, uintptr_t wp, intptr_t lp, intptr_t* result);
 
 
-// the ring ropes: 49 sections drawn by vertex program B0003131, 653 indices each; blended while the camera passes one
-// they swept across the screen (Harry's recording, 2026-11-22): such a step is held (GameInfo::interp_near_hold)
-bool RopeDraw(uint32_t vs_handle, uint32_t /*texture*/, uint32_t count) { return vs_handle == 0xB0003131 && count == 653; }
+// the ring ropes: 49 sections drawn by one vertex program, 653 indices each; blended while the camera passes one they
+// swept across the screen (Harry's recording, 2026-11-22): such a step is held (GameInfo::interp_near_hold). Named by the
+// program's code: its handle is an address, B0003131 in one run and B0103131 in another, which left the ropes unnamed
+constexpr uint64_t kRopeProgram = 0x4D20D4D40AC2A60Full;
+bool RopeDraw(uint64_t program, uint32_t /*texture*/, uint32_t count) {
+    if (count != 653) return false;
+    if (program == kRopeProgram) {
+        static bool told = false;
+        if (!told) told = true, LOGR("fn2: the ring ropes named for in-between frames (program %016llX)",
+                                     static_cast<unsigned long long>(program));
+        return true;
+    }
+    static uint64_t said[4] = {};
+    for (uint64_t& s : said) {
+        if (s == program) break;
+        if (!s) {
+            s = program;
+            LOGR("fn2: a 653-index draw by program %016llX, not the ropes'", static_cast<unsigned long long>(program));
+            break;
+        }
+    }
+    return false;
+}
 
 // the fight steps 25 times a second (a present every second 50 Hz vertical blank): frames in between up to the frame cap,
 // in a fight only (the front end's APT menus stay as drawn)

@@ -21,9 +21,9 @@ extern bool hide_hud;                                    // src/game/hud.cpp
 bool HudKey(void* hwnd, uint32_t msg, uintptr_t wp, intptr_t lp, intptr_t* result);
 
 
-// the ring ropes: 49 sections drawn by vertex program B0003131, 653 indices each; blended, those near the camera swept
-// across the screen (Harry's recording, 2026-11-22), so they are drawn as the game drew them
-bool Unblended(uint32_t vs_handle, uint32_t /*texture*/, uint32_t count) { return vs_handle == 0xB0003131 && count == 653; }
+// the ring ropes: 49 sections drawn by vertex program B0003131, 653 indices each; blended while the camera passes one
+// they swept across the screen (Harry's recording, 2026-11-22): such a step is held (GameInfo::interp_near_hold)
+bool RopeDraw(uint32_t vs_handle, uint32_t /*texture*/, uint32_t count) { return vs_handle == 0xB0003131 && count == 653; }
 
 // the fight steps 25 times a second (a present every second 50 Hz vertical blank): frames in between up to the frame cap,
 // in a fight only (the front end's APT menus stay as drawn)
@@ -127,7 +127,7 @@ const app::GameInfo app::kGame = {
     .texture_bound = fn2::ButtonPictures,  // buttons.cpp: today's pad and the keyboard's keys in the prompts
     .step_interpolation = fn2::SmoothNow,  // smooth_motion: frames in between in a fight
     .interp_pieces = false,               // the ring ropes are rebuilt each step: unmatched draws stay at their step
-    .interp_unblended = fn2::Unblended,   // the ring ropes: the camera's move only, not their own
+    .interp_near_hold = fn2::RopeDraw,    // a rope at the near plane: that step shown as drawn
     .auto_fills_screen = true,            // "from the screen's shape" fills an ultrawide screen (src/game/ultrawide.cpp)
     .aspect_live = true,                  // the aspect setting applies at once (src/game/ultrawide.cpp)
     .frame_aspect = fn2::FrameShape,      // the front end at 16:9, a fight at the setting's shape

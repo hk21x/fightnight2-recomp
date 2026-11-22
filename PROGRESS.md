@@ -28,6 +28,8 @@ handle is an address the game allocates, so in these runs the ropes were never n
 section to section, the fault fixed two attempts ago. SDK fork fn2-hold-aspect 2ddd97e: GameInfo::interp_near_hold
 gets the program's code hash; RopeDraw names 4D20D4D40AC2A60F with 653 indices and logs any other 653-index program.
 Headless: "the ring ropes named" in the fight, steps held as before. SMOKE OK. Main 9078288; Windows build asked.
+GPU-VM 9078288, the same Play Now at the Staples Center, three bursts of 30 renderer frames while punching: "the ring
+ropes named" in the log; every rope whole and moving smoothly in all 90 frames.
 
 ### 2026-11-22 - Every mode on GPU-VM; the pause menu's untextured pieces kept 16:9
 

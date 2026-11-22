@@ -10,6 +10,12 @@ namespace fn2 {
 void TestPad(int port, input::Pad& pad);                 // test_pad.cpp: FN2_PAD_FILE
 bool ButtonPictures(uint32_t header, uint32_t palette);  // buttons.cpp
 extern bool modern_buttons;                              // buttons.cpp
+bool InFight();                                          // src/game/ultrawide.cpp
+bool smooth_motion = true;                               // the setting
+
+// the fight steps 25 times a second (a present every second 50 Hz vertical blank): frames in between up to the frame cap,
+// in a fight only (the front end's APT menus stay as drawn)
+bool SmoothNow() { return smooth_motion && InFight(); }
 
 namespace {
 constexpr uint16_t kMouseRight = 0x02, kBackspace = 0x08, kTab = 0x09, kEnter = 0x0D, kEscape = 0x1B, kSpace = 0x20,
@@ -76,6 +82,9 @@ const app::GameInfo app::kGame = {
         {"modern_buttons", &fn2::modern_buttons, nullptr, "Modern button pictures",
          "Today's Xbox pad in the prompts and on the controls page (A B X Y on dark discs, Menu for START, LB and RB for "
          "White and Black); off, the original controller's. With the keyboard the keys show whatever this says."},
+        {"smooth_motion", &fn2::smooth_motion, nullptr, "Smooth motion",
+         "In a fight, frames in between the game's own (it moves 25 times a second) up to the frame cap; the game's speed "
+         "is unchanged. Off, the fight is shown as the game draws it."},
     },
     .load = nullptr,                      // reads more from the settings file's toml::table
     .save = nullptr,                      // writes more into it
@@ -91,6 +100,7 @@ const app::GameInfo app::kGame = {
     .mouse_look = true,                   // the mouse plays the right stick: Total Punch Control's punches
     .default_keys = fn2::Keys,            // the keys above
     .texture_bound = fn2::ButtonPictures,  // buttons.cpp: today's pad and the keyboard's keys in the prompts
+    .step_interpolation = fn2::SmoothNow,  // smooth_motion: frames in between in a fight
     .auto_fills_screen = true,            // "from the screen's shape" fills an ultrawide screen (src/game/ultrawide.cpp)
     .vblank_hz = 50,                      // PAL 50 Hz: the game steps a 50th of a second a frame (0x37DE1C +0.02)
     // optional, after these: .achievements (conditions on guest memory), .same_code (other releases' xbe SHA-1s with

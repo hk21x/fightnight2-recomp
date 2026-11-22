@@ -92,6 +92,12 @@ void Decide() {
 }  // namespace
 
 namespace fn2 {
+// in a fight (src/common/game_info.cpp: in-between frames only there): the arena's views or the fight's own 2D lately
+bool InFight() {
+    const auto now = Clock::now();
+    return now - g_arena < std::chrono::seconds(1) || now - g_shape < std::chrono::seconds(1);
+}
+
 // each texture bound (GameInfo::texture_bound, src/common/buttons.cpp): every frame binds some, in the front end too,
 // where no 3D view may be set up; at most once in 16 ms
 void UltrawideTick() {

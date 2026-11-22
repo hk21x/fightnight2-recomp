@@ -13,6 +13,7 @@ void TestPad(int port, input::Pad& pad);                 // test_pad.cpp: FN2_PA
 bool ButtonPictures(uint32_t header, uint32_t palette);  // buttons.cpp
 extern bool modern_buttons;                              // buttons.cpp
 bool InFight();                                          // src/game/ultrawide.cpp
+bool FrameHeld();                                        // src/game/ultrawide.cpp
 bool smooth_motion = true;                               // the setting
 bool skip_intro = false;                                 // the setting (src/game/movies.cpp)
 extern bool hide_hud;                                    // src/game/hud.cpp
@@ -99,8 +100,9 @@ const app::GameInfo app::kGame = {
          "The fight's health and stamina bars and round card left out (the pause menu's HUD switch, held off). F9 in "
          "play switches it."},
         {"smooth_motion", &fn2::smooth_motion, nullptr, "Smooth motion",
-         "In a fight, frames in between the game's own (it moves 25 times a second) up to the frame cap; the game's speed "
-         "is unchanged. Off, the fight is shown as the game draws it."},
+         "In a fight, frames in between the game's own (it moves 50 times a second) up to the frame cap; the game's speed "
+         "is unchanged. Needs a frame cap above 50 to show: 100 or more (on a 280 Hz screen, 140 or 280). Off, the fight "
+         "is shown as the game draws it."},
     },
     .load = nullptr,                      // reads more from the settings file's toml::table
     .save = nullptr,                      // writes more into it
@@ -120,6 +122,7 @@ const app::GameInfo app::kGame = {
     .texture_bound = fn2::ButtonPictures,  // buttons.cpp: today's pad and the keyboard's keys in the prompts
     .step_interpolation = fn2::SmoothNow,  // smooth_motion: frames in between in a fight
     .auto_fills_screen = true,            // "from the screen's shape" fills an ultrawide screen (src/game/ultrawide.cpp)
+    .bars_backdrop = fn2::FrameHeld,      // the menus and cutscenes at 16:9: a dimmed, blurred copy of the frame at the sides
     .vblank_hz = 50,                      // PAL 50 Hz: the game steps a 50th of a second a frame (0x37DE1C +0.02)
     // optional, after these: .achievements (conditions on guest memory), .same_code (other releases' xbe SHA-1s with
     // the same code), .wheel (what a steering wheel's force feedback follows)

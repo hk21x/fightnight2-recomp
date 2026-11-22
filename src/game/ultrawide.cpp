@@ -92,6 +92,9 @@ void Decide() {
 }  // namespace
 
 namespace fn2 {
+// the frame held at 16:9 (the front end, a cutscene): GameInfo::bars_backdrop, a blurred copy of it at the sides
+bool FrameHeld() { return g_held; }
+
 // in a fight (src/common/game_info.cpp: in-between frames only there): the arena's views or the fight's own 2D lately
 bool InFight() {
     const auto now = Clock::now();

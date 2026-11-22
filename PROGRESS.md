@@ -19,6 +19,16 @@ Newest first. Each entry: date, what changed, what was learned, what's next.
 
 ## Log
 
+### 2026-11-22 - The ropes shook because they were not recognised: named by program code, not handle
+
+Harry's three shots on 8303063 (3440x1440, Staples Center): rope pieces at different angles. A GPU-VM Play Now at the
+Staples Center, three bursts of 30 renderer frames (XBE_CAPTURE_FRAMES): the near red rope jumped from frame to frame.
+The capture named the rope program B0103131; RopeDraw asked for B0003131, the handle in the runs it was checked on. A
+handle is an address the game allocates, so in these runs the ropes were never named and went back to being matched
+section to section, the fault fixed two attempts ago. SDK fork fn2-hold-aspect 2ddd97e: GameInfo::interp_near_hold
+gets the program's code hash; RopeDraw names 4D20D4D40AC2A60F with 653 indices and logs any other 653-index program.
+Headless: "the ring ropes named" in the fight, steps held as before. SMOKE OK. Main 9078288; Windows build asked.
+
 ### 2026-11-22 - Every mode on GPU-VM; the pause menu's untextured pieces kept 16:9
 
 Harry away; tests with no one at the pad (GPU-VM, scripted pad and keys, desktop shots), build 605cf6b then 8303063:

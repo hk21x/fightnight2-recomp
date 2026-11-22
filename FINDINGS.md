@@ -40,6 +40,11 @@ game's own code and data, with its addresses).
 - **[game]** Ghidra PushBufferScan: no NV2A command stores in game code outside the 9 BeginPush/EndPush functions
   (0x210EB0 to 0x220C00, SET_BEGIN_END 0x417FC). No recorded push buffers.
 
+- Vertex program handles are addresses the game allocates (record address | 1) and move between runs: the rope program
+  was B0003131 in some runs and B0103131 in others. Name a program by its code (VertexShader::hash, FNV of the
+  microcode): the ropes are 4D20D4D40AC2A60F, 653 indices a section. The untextured 2D program computes w before x, y,
+  z (gpu::MatrixProgram takes any order since SDK 6a3d9df).
+
 ## Code
 - **[game]** sub_25AFA3 is SSE2 integer code (a quantiser loop) that the Xbox CPU cannot run: an unreachable path.
   Its five opcodes are left as traps in the recompiled code; none has fired.

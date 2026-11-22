@@ -14,10 +14,29 @@ Newest first. Each entry: date, what changed, what was learned, what's next.
 - Windows: 8303063 on GPU-VM (Arc, 1920x800, fps_cap 240): 40 minutes of every mode, smooth motion 170-210 fps in play;
   no sound there (no audio device). `\\192.168.1.229\Testing\fightnight2-test-8303063` ready for Harry
 - PAL 50 Hz: vblank_hz = 50, game time at real speed
-- Open: achievements (stopped), LT/RT tab markers still the old pad's L and R, video memory kept after textures are
+- Open: rope flicker with smooth motion at full speed (stopped, see log), achievements (stopped), LT/RT tab markers still the old pad's L and R, video memory kept after textures are
   freed (1.07 GB after 40 min), the gym drills' instruction popups held at 16:9
 
 ## Log
+
+### 2026-11-22 - Ropes still flicker with smooth motion (stopped: write-up)
+
+Harry, 9078288 at 3440x1440, fps_cap 240: the ropes flicker on every ring whenever smooth motion is on; his video
+(Fairgrounds, 2 s at 240 fps) shows the left and far ropes missing in some frames and drawn at different lengths in
+others while the camera barely moves. Reproduced on GPU-VM 9078288 (Fairgrounds, smooth motion on) with 60 desktop
+grabs in 1.5 s (a second scheduled task, FN2Burst, C:\fn2ctl\burst.ps1): near rope sections present in some grabs,
+gone in the next. The smooth-motion-off comparison was not made: another session started Bulletproof on GPU-VM at 23:15
+and its window covered ours (our pad input only reaches Fight Night; our run was stopped by PID).
+F3 captures (XBE_CAPTURE_FRAMES) of the same places never show it, in-between frames included (interp_table: 3 replays
+a step, every rope section moved by the camera's move). So it shows only at full speed: a race is the lead. Likely:
+something a replay reads from the game's memory after the game has gone on to its next step and rebuilt the ropes
+(vertices over kCopyBytes 64 KB, or from a base vertex far into a shared buffer, are not kept; an index or constant
+read late), which the capture's stalls hide.
+Attempts on the ropes so far: interp_pieces off; unblended; named draws by the camera's move only; held at either
+camera's near plane; named by program hash (the handle moved between runs). Five; stopped per the rule.
+Next: log, for the rope draws, whether KeepVertices kept their stream (bytes, base vertex) at full speed on GPU-VM;
+if not kept, keep it (or copy named draws' streams always); then compare against smooth motion off. Until then,
+smooth motion off avoids it.
 
 ### 2026-11-22 - The ropes shook because they were not recognised: named by program code, not handle
 

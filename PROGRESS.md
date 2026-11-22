@@ -16,6 +16,19 @@ Newest first. Each entry: date, what changed, what was learned, what's next.
 
 ## Log
 
+### 2026-11-22 - The ropes: matched no more, camera's move only, held at either camera's near plane
+
+Harry's shots of 9750208: the left-hand ropes broken into pieces at different angles (no step held). Two causes:
+- The rope sections (49 alike, 25 to 50 in view, plus a pass into a 256x256 target) were paired with the wrong
+  sections by the nearest-matrix match and blended toward their neighbours. Named draws (interp_near_hold) are no
+  longer matched: each takes the camera's move (was = move * now), so a rope moves as one with the scene. A step with
+  no camera move found is held.
+- A section beside the camera, in front of it now but behind where it was a step before, was blended through w 0.
+  Each named draw's v0 bounds are kept and tested against the derived earlier matrix too.
+GPU-VM 84a135a, fps_cap 240, 12 bursts of 30 renderer frames (XBE_CAPTURE_DIR, F3) while moving: the ropes whole and
+continuous; the only rope pieces near the camera are the game's own (the same 12 bursts with smooth motion off show
+them too, e.g. a black rope across the top when the camera sits behind the ropes). SDK fork fn2-hold-aspect 249a020.
+
 ### 2026-11-22 - Smooth motion and the ropes: a near-plane hold instead of special blending
 
 Harry: get the ropes working. The earlier fixes (leave the ropes unblended, or move them with the camera alone) put

@@ -137,6 +137,7 @@ const app::GameInfo app::kGame = {
     .pad = fn2::TestPad,                  // FN2_PAD_FILE (tests): controller 1 held from a file
     .rumble = nullptr,                    // changes a rumble before it is set
     .squeeze_screen_programs = true,      // the 2D drawn by flat matrix programs (the fight's HUD, APT) kept 16:9 on a wider frame
+    .edge_halves = true,                  // the knockdown vignette, drawn in halves from each edge to the middle, spans the frame
     .sharpen_2d = true,                   // the menus' TTF text, the HUD and the button pictures redrawn sharp (Settings::sharp_2d)
     .languages = {1, 3, 4},               // English, German, French: locale\*.loc and the movies' .nfx, .ger, .fre
     .pal_console = true,                  // a PAL-only disc (region 4): a PAL console with PAL 60 Hz on

@@ -19,6 +19,15 @@ Newest first. Each entry: date, what changed, what was learned, what's next.
 
 ## Log
 
+### 2026-11-23 - Skin flicker: every skinned piece matched
+
+Harry: smooth motion off stops the flicker. His fc57a26 log: 308 unmatched skinned pieces and 6,749 groups outside the
+table a 10 s. Probed: each had a like in the step before with the same key, rejected as a leap because its first
+bone was not a rotation in that step (squashed for a hit). SDK fork fn2-hold-aspect 8cc52e4: skinned in either step
+exempts from leap and turning (bones blend linearly); a piece whose like another draw took shares the nearest.
+Headless and GPU-VM f784e33 (Staples Center and County Fairgrounds, lean then punches, 8 marked bursts): unmatched 0,
+outside the table 0, seams 0 in every 10 s; 430-494 of 500 steps blended; bodies whole in the worst grabs.
+
 ### 2026-11-23 - Skin flicker: every matched draw votes in the group table
 
 Harry on 2b5fc6e: still flickering. His log: seams 0, but 26,000-57,000 skinned groups a 10 s outside the table (pieces

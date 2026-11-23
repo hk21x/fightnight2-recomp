@@ -19,6 +19,17 @@ Newest first. Each entry: date, what changed, what was learned, what's next.
 
 ## Log
 
+### 2026-11-23 - Heads and limbs flickering: scaled bones
+
+Harry's recording on 0291715 (Window 23-11-2026 15-07-08.mp4, an amateur gym): heads and shoulders changed every
+other frame (pale and red patches). Headless (interp_table): program B0004091 (heads, arms: the boxers' second skin
+program) 227 of 1664 unblended and 64 turning, ~5 per piece across 32 replays. Its bones are rigid but scaled 0.98
+(row length), so the rigid tests (unit rows within 0.02) failed: no exemption from leap and turning, no quaternion
+blend. SDK fork fn2-hold-aspect 2b7d5c3: a uniform scale is allowed (rows of one length, perpendicular), rotation and
+scale blended apart. Headless: 94 unblended, 8 turning. GPU-VM cf86219, LT and the right stick then punches, marked
+bursts at the County Fairgrounds (6) and My Gym sparring (3, headgear): heads and bodies whole in every in-between
+frame, in-between spikes 9 or under in the gym.
+
 ### 2026-11-23 - Bodies flickering while leaning (smooth motion): whole bodies dropped from the blend
 
 Harry on 302458d: the bodies still flicker, most while leaning (LT and the right stick). In-between frames at alpha

@@ -19,6 +19,16 @@ Newest first. Each entry: date, what changed, what was learned, what's next.
 
 ## Log
 
+### 2026-11-23 - Skin flicker: every matched draw votes in the group table
+
+Harry on 2b5fc6e: still flickering. His log: seams 0, but 26,000-57,000 skinned groups a 10 s outside the table (pieces
+whose first bone was not a rotation in both steps were left out, drawn at the step while the body blended). SDK fork
+fn2-hold-aspect c599660: every matched draw votes; a tie goes to the step-before value nearest the value now; every
+draw takes the table's value for each group it has. Headless: outside 737, seams 0. GPU-VM fc57a26, Staples and
+Fairgrounds, lean then punches, 8 marked bursts: outside 216-2,848 a 10 s, seams 0 (2 once), 440-471 of 500 blended,
+bodies whole at full size in the worst in-between grabs. Left: ~50-120 unmatched skinned pieces a 10 s at the step.
+Asked Harry to toggle smooth motion off if he still sees it, to tell in-between frames from the game's own drawing.
+
 ### 2026-11-23 - Skin flicker: one bone table per step, bones blended linearly
 
 Harry: the skin still flickers, no more guesses. Every flicker so far was a body's pieces disagreeing about a shared

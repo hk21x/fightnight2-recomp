@@ -85,11 +85,10 @@ float FrameShape(float chosen) {
     return g_front ? kWide : std::max(chosen, kWide);
 }
 
-// in a fight (src/common/game_info.cpp: in-between frames only there): the arena's views or the fight's own 2D lately
-bool InFight() {
-    const auto now = Clock::now();
-    return now - g_arena < std::chrono::seconds(1) || now - g_shape < std::chrono::seconds(1);
-}
+// in a fight (src/common/game_info.cpp: in-between frames only there): the same decision as the frame's shape (Decide),
+// so the menus never get frames in between. Its own test (the arena's views or the fight's 2D within a second) stayed
+// true on Select Boxer after a quit, blending its stats text (Harry, 2026-11-23: flickered)
+bool InFight() { return !g_front; }
 
 // each texture bound (GameInfo::texture_bound, src/common/buttons.cpp): every frame binds some, in the front end too,
 // where no 3D view may be set up; at most once in 16 ms

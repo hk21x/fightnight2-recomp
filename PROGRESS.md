@@ -19,6 +19,24 @@ Newest first. Each entry: date, what changed, what was learned, what's next.
 
 ## Log
 
+### 2026-11-23 - Bodies torn by landed punches (smooth motion); the knockdown vignette at 16:9
+
+Harry's recording (Window 23-11-2026 11-56-38.mp4) and three screenshots on 2c9ef61, 3440x1440.
+- **Bodies:** in-between frames as a punch lands showed the hit boxer's torso crumpled, then in pieces. Bones are
+  rigid 4x4 groups from register 0 (rotation, position, 0 0 0 1), c-96 onward. Three causes, SDK fork fn2-hold-aspect:
+  blended a number at a time a far-turning bone shrinks (03dc67a: rigid groups blended as quaternions); a piece whose
+  first bone turned far was taken as a spinning object, only its place blended, its other bones left at the step
+  while the body's other pieces blended (310c54e: not for a rigid first matrix); and skin weighted between bones that
+  snap round in one step still tore. A step's largest bone turn is 10-30 degrees, a landed punch sometimes 60-180
+  (logged); GameInfo::interp_bone_hold (e0204e5), FN2 45: that step shown as drawn, about 5-10 in 500. GPU-VM 302458d,
+  marked bursts while punching: the bodies whole in every frame in between.
+- **Knockdown square:** the knockdown's spotlight vignette is top and bottom bands, each in two halves from an edge
+  to the middle (-107..320, 320..747 of an 854 wide layout mapped onto the screen). Neither half spans the frame, so
+  both were squeezed and the vignette stopped at the 16:9 edges. GameInfo::edge_halves (7634f28), on for FN2: a 2D
+  piece from one edge to the middle keeps its edge. GPU-VM 302458d, an idle fight until knocked down: the vignette
+  across the frame.
+- Ruled out on the way: the round-end fade (one quad 0..640, already full width); the ring's reflection pass.
+
 ### 2026-11-23 - Ultrawide after a quit and in the pause menu; smooth motion off in the menus
 
 Harry: quitting a fight at ultrawide, the text flashed for a few seconds before 16:9 came back; then the pause menu

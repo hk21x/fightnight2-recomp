@@ -55,15 +55,16 @@ std::atomic<float> g_chosen{0};   // the aspect setting's shape as last asked (G
 bool Recent(Clock::time_point t) { return Clock::now() - t < std::chrono::milliseconds(250); }
 
 // in the front end until the arena's views have been set up for 300 ms on end (a menu's one wide view as it opens is
-// not a fight); back in it on a menu's narrow boxer view, or no arena view for 200 ms. In a fight the arena's
-// views never stop for more than 60 ms (a headless fight, 2026-11-23; the pause menu leaves the camera alone). The
-// fight's 2D drawer is no sign of a fight: the loading screen and the menus after a quit draw through it too, which
-// held the frame at the fight's shape for seconds after quitting (Harry, 2026-11-23: the text flashed stretched).
-// Decided whatever the aspect setting, so a change to it in play applies at once
+// not a fight); back in it on a menu's narrow boxer view, or neither the arena's views nor the fight's 2D for 200 ms.
+// Measured headless (2026-11-23): in a fight the arena's views never stop for more than 60 ms; paused, they stop
+// altogether (on Harry's PC they come back about once a second: a rule on them alone flickered the pause menu between
+// the shapes), but the pause menu draws its 2D through 0x125280 every frame; after a quit both stop at once (the old
+// wait of a second for the 2D showed the next menus stretched). Decided whatever the aspect setting, so a change to
+// it in play applies at once
 void Decide() {
     const auto now = Clock::now();
     const bool arena = Recent(g_arena) && now - g_since > std::chrono::milliseconds(300);
-    const bool left = now - g_arena > std::chrono::milliseconds(200);
+    const bool left = now - g_arena > std::chrono::milliseconds(200) && now - g_shape > std::chrono::milliseconds(200);
     const bool front = g_front ? !arena : Recent(g_narrow) || left;
     if (front == g_front) return;
     g_front = front;

@@ -14,10 +14,32 @@ Newest first. Each entry: date, what changed, what was learned, what's next.
 - Windows: 8303063 on GPU-VM (Arc, 1920x800, fps_cap 240): 40 minutes of every mode, smooth motion 170-210 fps in play;
   no sound there (no audio device). `\\192.168.1.229\Testing\fightnight2-test-8303063` ready for Harry
 - PAL 50 Hz: vblank_hz = 50, game time at real speed
-- Open: rope flicker with smooth motion at full speed (stopped, see log), achievements (stopped), LT/RT tab markers still the old pad's L and R, video memory kept after textures are
+- Open: rope pops at the Staples Center with smooth motion (stopped 2026-11-23, see log), achievements (stopped), LT/RT tab markers still the old pad's L and R, video memory kept after textures are
   freed (1.07 GB after 40 min), the gym drills' instruction popups held at 16:9
 
 ## Log
+
+### 2026-11-23 - Rope flicker: one cause fixed, the Staples Center's ropes are another program (stopped)
+
+All four Play Now rings (Staples Center, County Fairgrounds, The Viceroy, The Elevese; the venue list wraps after four)
+and My Gym, on GPU-VM with desktop bursts (60 grabs in 1.5 s, FN2Burst; ~/scratch/fn2win/ring.sh, ring2.sh, spike.py
+scores each grab against its neighbours).
+- **Fixed (SDK df47063):** the game rewrites its 653-index rope sections' vertices in place for its next step; one
+  stream in six had changed before the next step's first draw (XBE_INTERP_ROPE_CHECK=1). The render thread, behind by
+  the in-between frames, drew torn ropes. Interpolating::Present now waits for the renderer to have read the step's
+  own draws. Fairgrounds: spike median 10.6 -> 3.9 (the flicker in Harry's video gone); Viceroy, Elevese, gym clean.
+  Game speed unchanged without the grabs (500 steps a 10 s; the grabs themselves slow the VM).
+- **Not fixed, Staples Center:** single grabs still show thick ropes and the blue padded rope at the lens with smooth
+  motion on, none in 6 bursts with it off. Holding every step with a named draw (XBE_INTERP_NEAR_W=100000) removes
+  them; but leaving the 653-index program out altogether (XBE_DRAW_SKIP=B0103131) leaves the ring ropes on screen
+  and the pops too: at the Staples Center the visible ropes are drawn by another program, not named, so matched to
+  their neighbours like any scenery (the fault fixed for the 653-index ropes two attempts ago). The nearest
+  653-index vertex is never under w 100 there (logged); those draws are probably its reflection pass (a 256x256 target).
+- Tried and left off by default (SDK 87cc7a4, 62d4608): interp_near_margin (XBE_INTERP_NEAR_W), interp_near_jump
+  (XBE_INTERP_NEAR_JUMP 0.3: no change), XBE_INTERP_MARK (draws no mark yet).
+- Next: find the Staples ropes' program (XBE_DRAW_SKIP one candidate at a time: B0103671, B0104091, B0103C31,
+  B0103171, B01028D1), check whether each venue draws its ropes differently, and name them by code hash in RopeDraw
+  (or name rope draws by their texture instead).
 
 ### 2026-11-22 - Ropes still flicker with smooth motion (stopped: write-up)
 

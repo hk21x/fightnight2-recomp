@@ -21,29 +21,27 @@ extern bool hide_hud;                                    // src/game/hud.cpp
 bool HudKey(void* hwnd, uint32_t msg, uintptr_t wp, intptr_t lp, intptr_t* result);
 
 
-// the ring ropes: 49 sections drawn by one vertex program, 653 indices each; blended while the camera passes one they
-// swept across the screen (Harry's recording, 2026-11-22): such a step is held (GameInfo::interp_near_hold). Named by the
-// program's code: its handle is an address, B0003131 in one run and B0103131 in another, which left the ropes unnamed
-constexpr uint64_t kRopeProgram = 0x4D20D4D40AC2A60Full;
+// the ring ropes, two ways: most rings draw them in sections of 653 indices by one vertex program (49 alike); the Staples
+// Center draws its own ropes by another (131, 463 and 529 indices, four of each), its 653-index draws being something
+// else there (found 2026-11-23 by leaving each program out on GPU-VM: XBE_DRAW_SKIP). Blended while the camera passes,
+// they swept across the screen (Harry's recordings, 2026-11-22): GameInfo::interp_near_hold names them, so they are
+// not matched to their neighbours, take the camera's move, and hold a step at the near plane. Named by the program's
+// code: a handle is an address, B0003131 in one run and B0103131 in another
+constexpr uint64_t kRopeProgram = 0x4D20D4D40AC2A60Full, kStaplesRopeProgram = 0xAF16804AB89E15AFull;
 bool RopeDraw(uint64_t program, uint32_t /*texture*/, uint32_t count) {
-    if (count != 653) return false;
-    if (program == kRopeProgram) {
-        static bool told = false;
-        if (!told) told = true, LOGR("fn2: the ring ropes named for in-between frames (program %016llX)",
-                                     static_cast<unsigned long long>(program));
-        return true;
+    const bool rope = (program == kRopeProgram && count == 653) || program == kStaplesRopeProgram;
+    if (rope) {
+        static bool told[2] = {};
+        bool& t = told[program == kStaplesRopeProgram];
+        if (!t) t = true, LOGR("fn2: ring ropes named for in-between frames (program %016llX)",
+                               static_cast<unsigned long long>(program));
     }
-    static uint64_t said[4] = {};
-    for (uint64_t& s : said) {
-        if (s == program) break;
-        if (!s) {
-            s = program;
-            LOGR("fn2: a 653-index draw by program %016llX, not the ropes'", static_cast<unsigned long long>(program));
-            break;
-        }
-    }
-    return false;
+    return rope;
 }
+
+// GameInfo::interp_named_transform: the Staples Center's ropes are skinned, their sag bones in c-96 on and the
+// transform in c84 to c87 (register 180, seen in a GPU-VM frame capture); the other ropes' program has it first
+int RopeTransform(uint64_t program) { return program == kStaplesRopeProgram ? 180 : -1; }
 
 // the fight steps 25 times a second (a present every second 50 Hz vertical blank): frames in between up to the frame cap,
 // in a fight only (the front end's APT menus stay as drawn)
@@ -148,6 +146,7 @@ const app::GameInfo app::kGame = {
     .step_interpolation = fn2::SmoothNow,  // smooth_motion: frames in between in a fight
     .interp_pieces = false,               // the ring ropes are rebuilt each step: unmatched draws stay at their step
     .interp_near_hold = fn2::RopeDraw,    // a rope at the near plane: that step shown as drawn
+    .interp_named_transform = fn2::RopeTransform,  // where the Staples Center's skinned ropes keep their transform
     .auto_fills_screen = true,            // "from the screen's shape" fills an ultrawide screen (src/game/ultrawide.cpp)
     .aspect_live = true,                  // the aspect setting applies at once (src/game/ultrawide.cpp)
     .frame_aspect = fn2::FrameShape,      // the front end at 16:9, a fight at the setting's shape

@@ -19,6 +19,21 @@ Newest first. Each entry: date, what changed, what was learned, what's next.
 
 ## Log
 
+### 2026-11-23 - Skin flicker: one bone table per step, bones blended linearly
+
+Harry: the skin still flickers, no more guesses. Every flicker so far was a body's pieces disagreeing about a shared
+bone (one piece blended, another left at its step or matched to the wrong piece). SDK fork fn2-hold-aspect:
+- dfafd91: each step, every register group of the matched skinned draws (first group a rotation and scale) is put in
+  a table by its value now, its step-before value by majority of the pieces; every skinned draw, matched or not,
+  takes each group from it, or its step's own value where none: a shared bone is blended once, the same everywhere.
+  A check counts a group blended two ways in one frame, logged each 10 s: headless 10,000-17,000 -> 0; GPU-VM 0.
+- 681e0bc: a frame on GPU-VM still showed a chest and an arm parted mid-blend with the check at 0: a piece's bones
+  come multiplied by its own bind pose, and a rotation-plus-position blend differs per piece. Groups are blended
+  linearly (lerp(A B, C B) = lerp(A, C) B, the same for every piece); interp_bone_hold 30 keeps the shrink of a big
+  turn small (2%), about 1 step in 10 held.
+GPU-VM 2b5fc6e, Staples Center and County Fairgrounds, LT with the right stick then punches, 8 marked bursts: seams
+0, 442-498 of 500 steps blended, bodies whole in every frame in between (spikes checked at full size).
+
 ### 2026-11-23 - Smooth motion falling to 50 near the ropes: crossing sections snap alone
 
 Harry on cf86219: the frame rate sat at 50, climbed to 200 and fell back, often. His log: 94-126 of 500 steps

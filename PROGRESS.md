@@ -19,6 +19,18 @@ Newest first. Each entry: date, what changed, what was learned, what's next.
 
 ## Log
 
+### 2026-11-23 - Smooth motion falling to 50 near the ropes: crossing sections snap alone
+
+Harry on cf86219: the frame rate sat at 50, climbed to 200 and fell back, often. His log: 94-126 of 500 steps
+blended in some 10 s; ~800 steps held because a named rope section crossed the near plane (at the Staples Center the
+ropes run round the camera, some section behind it most steps). SDK fork fn2-hold-aspect a509786: such a section is
+drawn whole at the nearer step (the step before's place, the camera's move undone, up to half way), the rest of the
+frame blends; a step is held only for a named draw without the camera's move. Headless 475-487 of 500 blended (was
+~160). GPU-VM 286fcca (staging folder; Harry had the test folder open), Staples, LT and the right stick then
+punches, 6 marked bursts: 479-498 of 500 blended, almost every grab in between, ropes whole.
+recomp-vm now also builds to C:\Testing\fightnight2-stage (exe, pdb, BUILD.txt only) when Harry's folder is busy,
+and copies in once it is free.
+
 ### 2026-11-23 - Heads and limbs flickering: scaled bones
 
 Harry's recording on 0291715 (Window 23-11-2026 15-07-08.mp4, an amateur gym): heads and shoulders changed every

@@ -19,6 +19,18 @@ Newest first. Each entry: date, what changed, what was learned, what's next.
 
 ## Log
 
+### 2026-11-23 - Bodies flickering while leaning (smooth motion): whole bodies dropped from the blend
+
+Harry on 302458d: the bodies still flicker, most while leaning (LT and the right stick). In-between frames at alpha
+0.04 showed torn shoulders and arms: some pieces at the step before's pose, others at the new step's. Headless
+(interp_table): 96 of 1120 body draws (program B0003671) unblended, always all of one boxer's pieces together while
+his head (633 indices) blended. Logged: his first bone (register 0, rigid) moves 4 to 10 units a step, steadily, as
+the camera swings or he leans, over kLeap (4): taken for a different draw. SDK fork fn2-hold-aspect 18837ce: a rigid
+first matrix is not taken as leapt (nor turning, 310c54e). Headless: 10 of 896 unblended. GPU-VM 0291715, LT held
+with the right stick swung (~/scratch/fn2win/lean.sh), 6 marked bursts: the bodies whole in every frame in between.
+Seen: while leaning the camera sits by the ropes and many steps hold on the ropes' near plane (130 of 501 blended in
+one 10 s): shown at 50 a second there, not torn.
+
 ### 2026-11-23 - Bodies torn by landed punches (smooth motion); the knockdown vignette at 16:9
 
 Harry's recording (Window 23-11-2026 11-56-38.mp4) and three screenshots on 2c9ef61, 3440x1440.

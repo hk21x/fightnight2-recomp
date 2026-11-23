@@ -44,6 +44,8 @@ game's own code and data, with its addresses).
   was B0003131 in some runs and B0103131 in others. Name a program by its code (VertexShader::hash, FNV of the
   microcode): the ropes are 4D20D4D40AC2A60F, 653 indices a section. The untextured 2D program computes w before x, y,
   z (gpu::MatrixProgram takes any order since SDK 6a3d9df).
+- Rope programs: most rings 4D20D4D40AC2A60F (653 indices a section); the Staples Center AF16804AB89E15AF, skinned
+  (bones from c-96, transform c84-c87), 131/463/529 indices; there the 653-index draws are something else.
 
 ## Code
 - **[game]** sub_25AFA3 is SSE2 integer code (a quantiser loop) that the Xbox CPU cannot run: an unreachable path.

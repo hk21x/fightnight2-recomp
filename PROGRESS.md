@@ -14,10 +14,29 @@ Newest first. Each entry: date, what changed, what was learned, what's next.
 - Windows: 8303063 on GPU-VM (Arc, 1920x800, fps_cap 240): 40 minutes of every mode, smooth motion 170-210 fps in play;
   no sound there (no audio device). `\\192.168.1.229\Testing\fightnight2-test-8303063` ready for Harry
 - PAL 50 Hz: vblank_hz = 50, game time at real speed
-- Open: rope pops at the Staples Center with smooth motion (stopped 2026-11-23, see log), achievements (stopped), LT/RT tab markers still the old pad's L and R, video memory kept after textures are
+- Open: achievements (stopped), LT/RT tab markers still the old pad's L and R, video memory kept after textures are
   freed (1.07 GB after 40 min), the gym drills' instruction popups held at 16:9
 
 ## Log
+
+### 2026-11-23 - Ropes: the Staples Center's skinned ropes named; all four rings and the gym validated on GPU-VM
+
+Harry: keep looking. Found by leaving programs out on GPU-VM (XBE_DRAW_SKIP, bisecting): the Staples Center draws its
+visible ropes with program AF16804AB89E15AF (131, 463, 529 indices, four of each), skinned: sag bones in the first
+registers, the transform at c84 (register 180). Matched by the bone matrices, sections were paired with their
+neighbours (the pops at the lens); named but read at register 0 they had no perspective row and were held every step.
+- SDK fork fn2-hold-aspect (b485667, 291051a): GameInfo::interp_named_transform (where a named program keeps its
+  transform); a step with the camera's move is held only when a named vertex crosses the near plane between the steps
+  (behind the camera in both stays behind in between, the blend being linear), and only where the transform is known
+  (the 653-index program does more than transform v0: never held by the near plane, as before).
+- XBE_INTERP_MARK=1 now works (the console's D3DCLEAR_TARGET is 0xF0): each shown frame marked, the title's own red,
+  in between green; ~/scratch/fn2win/spikemarks.py pairs each spike with the marks.
+- GPU-VM 4e56296, smooth motion on, 60-grab bursts while punching: Staples Center 6 bursts, Fairgrounds, Viceroy,
+  Elevese 3 each, My Gym sparring 1. No rope pops at the lens in any; the highest spikes (at most 21) are camera
+  swings, a light flare, or runs of the game's own frames. Held steps are real crossings (the camera against the
+  ropes): blended 223-357 of 500 a 10 s at the Fairgrounds, 156-272 the Viceroy, 307-416 the Elevese; those moments
+  show at the game's own 50 a second.
+- Not done: holding just the crossing sections instead of the whole step (more smoothness against the ropes).
 
 ### 2026-11-23 - Rope flicker: one cause fixed, the Staples Center's ropes are another program (stopped)
 

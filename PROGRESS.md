@@ -19,6 +19,22 @@ Newest first. Each entry: date, what changed, what was learned, what's next.
 
 ## Log
 
+### 2026-11-23 - Ultrawide after a quit and in the pause menu; smooth motion off in the menus
+
+Harry: quitting a fight at ultrawide, the text flashed for a few seconds before 16:9 came back; then the pause menu
+flickered (ffd68d5); then Select Boxer's stats flickered after a quit (debfee0).
+- The front end/fight decision (src/game/ultrawide.cpp Decide) waited a second without the fight's 2D (0x125280)
+  before going back to 16:9. Measured headless with a pad that pauses and quits (.local/quit.txt, pause.txt): in a
+  fight the arena's views never stop for more than 60 ms; paused they stop (on Harry's PC they come back about once a
+  second); the pause menu draws its 2D every frame; after a quit both stop at once. Now the fight ends when neither
+  has been drawn for 200 ms, and a quit's last view no longer brings the fight's shape back for a frame.
+- fn2::InFight (smooth motion's switch) had its own one-second test, true in the menus on Harry's PC (his debfee0 log
+  blends 31 frames in its first 10 s, all menus): it is now the same decision. GPU-VM 2c9ef61: no blending in 71 s of
+  menus, smooth motion in the fight, none after the quit; Select Boxer's stats steady over 160 grabs from the quit.
+- Tried: an arena-views-only rule (ffd68d5: the pause flicker); memory dumps for a pause or fight flag (the fight
+  clock 0x37DE1C stops both paused and after a quit; nothing clean found).
+- Test folders on recomp-vm tidied (Harry): builds go to C:\Testing\fightnight2-test, captures in fightnight2-captures.
+
 ### 2026-11-23 - Ropes: the Staples Center's skinned ropes named; all four rings and the gym validated on GPU-VM
 
 Harry: keep looking. Found by leaving programs out on GPU-VM (XBE_DRAW_SKIP, bisecting): the Staples Center draws its

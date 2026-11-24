@@ -19,6 +19,18 @@ Newest first. Each entry: date, what changed, what was learned, what's next.
 
 ## Log
 
+### 2026-11-24 - Skin flicker: F11 dump and analyser; the in-between data proven right here
+
+Harry on 38ed1ed: still flickering (his session: 25 s, counts all 0). Added (SDK 55d6d36, main 96acb57): F11 writes the
+last 75 steps of skinned draws (meshes, registers, each replay's registers) beside the exe; tools/interp_dump
+(scripts/interp-dump.sh FILE) re-runs each boxer piece's vertex program at the step before (the same mesh's own
+draw), its step and every replay, and reports vertices off the straight line (guest pixels). Checked: a planted 5
+unit bone shift is found (5,733 draws); 39 dumps covering a headless leaning fight: no vertex over 6 px, the current
+table and the old one alike. Also ruled out: body streams not copied (none over 64 KB, the copy area never full); the
+renderer's state differing from the title's (XBE_CHECK_STATE on GPU-VM: 2,000,000 draws, 0). So the in-between frames
+are computed right here; Harry's flicker is between them and his screen, or in data only his PC produces. His F11
+dump will tell which: spikes in it, data; none, the rendering path.
+
 ### 2026-11-24 - Retest of the shoulder-spike fix: A/B on one build
 
 Harry asked how sure. XBE_INTERP_TABLE_ALL=1 restores the old table; a check counts table groups whose step-before

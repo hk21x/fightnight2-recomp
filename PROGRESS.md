@@ -19,6 +19,16 @@ Newest first. Each entry: date, what changed, what was learned, what's next.
 
 ## Log
 
+### 2026-11-24 - Harry's F11 dumps: the in-between frames right on his PC too; the renderer's threads next
+
+Harry's two dumps (21:01, flicker seen): tools/interp_dump, 3.45 million vertex places, none over 2 px off the line;
+3-4 replays a step (alpha ~0.10, 0.34, 0.57, 0.78). So what smooth motion computes is right on his PC; the flicker is
+between it and his screen. Ruled out here since: skinned textures rewritten between steps (0 of ~3,400 a 100 steps,
+XBE_INTERP_ROPE_CHECK). Left: the renderer's threads (the prep thread assembles draws later, the record thread),
+his GPU or driver (RX 7900 XT; GPU-VM is an Arc A750, clean). Put in his folder: test1-no-prep-thread.bat
+(XBE_PRE_ASSEMBLE=0), test2-no-record-thread.bat (XBE_RECORD_THREAD=0), test3-both.bat; and the D3D11 renderer
+(settings). Note: an F11 dump stalls the game about 5 s writing 85 MB to the share.
+
 ### 2026-11-24 - Skin flicker: F11 dump and analyser; the in-between data proven right here
 
 Harry on 38ed1ed: still flickering (his session: 25 s, counts all 0). Added (SDK 55d6d36, main 96acb57): F11 writes the

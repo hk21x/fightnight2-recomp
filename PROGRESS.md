@@ -14,7 +14,7 @@ Newest first. Each entry: date, what changed, what was learned, what's next.
 - Windows: 8303063 on GPU-VM (Arc, 1920x800, fps_cap 240): 40 minutes of every mode, smooth motion 170-210 fps in play;
   no sound there (no audio device). `\\192.168.1.229\Testing\fightnight2-test-8303063` ready for Harry
 - PAL 50 Hz: vblank_hz = 50, game time at real speed
-- Open: skin flicker with smooth motion on Harry's AMD card: bodies now pose at the steps, to test; achievements (stopped), LT/RT tab markers still the old pad's L and R, video memory kept after textures are
+- Open: skin flicker with smooth motion on Harry's AMD card: bodies now pose at the steps (c3c33bb), Harry to test; achievements (stopped), LT/RT tab markers still the old pad's L and R, video memory kept after textures are
   freed (1.07 GB after 40 min), the gym drills' instruction popups held at 16:9
 
 ## Log
@@ -31,7 +31,9 @@ first group affine): it goes through the bone table and the final pass, and into
 Check: headless dumps, tools/interp_dump POSE_AT_STEP=1: before, 905 places off on newly seen draws (to 14 px), then 6
 (to 162 px, the other boxer); now 0 of 59.4 million. Programs 4091 and 3C31 now dump 2.5 times the draws. Smoke OK.
 tools/interp_dump PGROUPS=1 lists perspective groups per program and their values per step.
-Next: GPU-VM at the same venue, then Harry.
+GPU-VM on c3c33bb: 8 lean/punch bursts at two venues (480 grabs, in-between frames and steps): bodies and shorts
+whole in every grab looked at, the worst in-between spikes (to 17) the camera swinging. In Harry's folder.
+Next: Harry tests c3c33bb on his AMD card with smooth motion on.
 
 ### 2026-11-24 - Skin flicker: bodies pose at the game's steps, move with the camera (Harry's option 2)
 

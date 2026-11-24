@@ -209,6 +209,26 @@ int main(int argc, char** argv) {
     // NONFINITE=1: registers not finite in the step's own drawing and in the replays, by register; and positions
     // LAYERS=1: draws of one program and count with equal registers in the step's own drawing (a piece drawn twice,
     // a layer over it by depth): are their registers still equal in each replay?
+    // CAMERA=1: per program, the register groups whose last row is a perspective one (not 0 0 0 1) in every draw
+    if (std::getenv("CAMERA")) {
+        std::map<uint32_t, std::map<int, int>> persp;
+        std::map<uint32_t, int> draws;
+        for (const Step& st : steps)
+            for (const Draw& d : st.draws) {
+                draws[d.vs & 0xFFFF]++;
+                for (int g = 0; g < 48; g++) {
+                    const float* w = &d.vsc[size_t(g * 4 + 3) * 4];
+                    if (!(w[0] == 0 && w[1] == 0 && w[2] == 0 && w[3] == 1) && (std::fabs(w[0]) + std::fabs(w[1]) + std::fabs(w[2])) > 1e-3f)
+                        persp[d.vs & 0xFFFF][g]++;
+                }
+            }
+        for (auto& [vs, m] : persp) {
+            std::printf("..%04X (%d draws):", vs, draws[vs]);
+            for (auto [g, n] : m) std::printf(" group %d (registers %d-%d) %d", g, g * 4, g * 4 + 3, n);
+            std::printf("\n");
+        }
+        return 0;
+    }
     if (std::getenv("LAYERS")) {
         uint64_t pairs = 0, parted = 0, groups_parted = 0;
         std::map<std::string, uint64_t> where;

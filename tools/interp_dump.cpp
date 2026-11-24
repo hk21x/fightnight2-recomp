@@ -1,3 +1,4 @@
+#include <set>
 // interp_dump FILE [threshold]: reads a smooth-motion dump (F11 in the game, gpu::RequestInterpDump) and runs each
 // skinned draw's vertex program on its mesh: at the step before (its matched draw's registers), at its step, and with
 // each replay's registers. A vertex whose in-between screen place is more than the threshold (guest pixels, default 6)
@@ -436,6 +437,39 @@ int main(int argc, char** argv) {
             for (const Replay& rp : st.replays) std::printf(" [%.2f %zu]", rp.alpha, rp.draws.size());
             std::printf("\n");
         }
+    }
+    if (std::getenv("PGROUPS")) {  // which register groups of each program are perspective (last row not 0 0 0 1)
+        std::map<std::pair<uint32_t, std::string>, int> seen;
+        for (const Step& st : steps)
+            for (const Draw& d : st.draws) {
+                std::string g;
+                for (int k = 0; k < 48; k++) {
+                    const float* w = &d.vsc[size_t(k * 4 + 3) * 4];
+                    if (std::fabs(w[0]) + std::fabs(w[1]) + std::fabs(w[2]) > 1e-3f) g += std::to_string(k) + " ";
+                }
+                seen[{d.vs, g}]++;
+            }
+        for (auto& [k, n] : seen) std::printf("%08X groups %s(%d draws)\n", k.first, k.second.c_str(), n);
+        // how many different values each perspective group has among one step's skinned draws
+        for (int g : {14, 41, 44, 45, 46}) {
+            size_t most = 0;
+            for (const Step& st : steps) {
+                std::set<std::vector<float>> vals;
+                for (const Draw& d : st.draws)
+                    if ((d.vs & 0xFFFF) != 0x28D1) vals.insert(std::vector<float>(d.vsc.begin() + g * 16, d.vsc.begin() + g * 16 + 16));
+                most = std::max(most, vals.size());
+            }
+            std::printf("group %d: up to %zu values in a step\n", g, most);
+        }
+        if (const char* e = std::getenv("PGROUPS_SHOW")) {  // one step's draws: count, group 41 44 46 first rows
+            const Step& st = steps[size_t(std::atoi(e))];
+            for (const Draw& d : st.draws) {
+                std::printf("%08X n%u", d.vs, d.count);
+                for (int g : {41, 44, 46}) std::printf(" | g%d %.3f %.3f %.3f %.3f / %.3f %.3f %.3f %.3f", g, d.vsc[size_t(g*16)], d.vsc[size_t(g*16+1)], d.vsc[size_t(g*16+2)], d.vsc[size_t(g*16+3)], d.vsc[size_t(g*16+12)], d.vsc[size_t(g*16+13)], d.vsc[size_t(g*16+14)], d.vsc[size_t(g*16+15)]);
+                std::printf("\n");
+            }
+        }
+        return 0;
     }
     static gpu::State s;
     uint64_t checked = 0, spikes = 0;

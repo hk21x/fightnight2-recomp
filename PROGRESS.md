@@ -9,15 +9,29 @@ Newest first. Each entry: date, what changed, what was learned, what's next.
 - Push buffers: none recorded (no RunPushBuffer/CreatePushBuffer, Ghidra scan); EAGL's BeginPush/EndPush at 9 sites,
   decoded by the runtime
 - Smoke: `scripts/smoke.sh` (scripts/pad/fight.txt) SMOKE OK
-- GitHub: hk21x/fightnight2-recomp (private), main pushed; SDK on fork branch fn2-hold-aspect 899b30e (fork main
+- GitHub: hk21x/fightnight2-recomp (private), main pushed; SDK on fork branch fn2-hold-aspect 361b102 (fork main
   5af29c1 + FN2's runtime changes), to gate before fork main
 - Windows: 8303063 on GPU-VM (Arc, 1920x800, fps_cap 240): 40 minutes of every mode, smooth motion 170-210 fps in play;
   no sound there (no audio device). `\\192.168.1.229\Testing\fightnight2-test-8303063` ready for Harry
 - PAL 50 Hz: vblank_hz = 50, game time at real speed
-- Open: skin flicker with smooth motion on Harry's AMD card: bodies now pose at the steps (899b30e), to test; achievements (stopped), LT/RT tab markers still the old pad's L and R, video memory kept after textures are
+- Open: skin flicker with smooth motion on Harry's AMD card: bodies now pose at the steps, to test; achievements (stopped), LT/RT tab markers still the old pad's L and R, video memory kept after textures are
   freed (1.07 GB after 40 min), the gym drills' instruction popups held at 16:9
 
 ## Log
+
+### 2026-11-24 - Bodies at step: the shorts tore, pieces with a squashed first bone were missed
+
+GPU-VM on c827bae (bones at step): bodies whole in the lean/punch bursts, but Winky's shorts showed dark slivers in
+most in-between frames at one venue (opt2v1 b4); none in step frames or with test B. Cause: a piece whose first bone
+is squashed in both steps (cloth) failed the Rigid test, so it was not posed at the step and was blended on its own:
+as turning (camera at the step), or from the other boxer's like piece (group 41, 164-167, holds a boxer's own place;
+6 draws 50-160 px off). The F11 dump picked draws the same way, so the analyser never saw them.
+Fix (sdk): with interp_bones_at_step a draw is skinned also by its program (one that drew a rigid-boned draw this step,
+first group affine): it goes through the bone table and the final pass, and into the dump.
+Check: headless dumps, tools/interp_dump POSE_AT_STEP=1: before, 905 places off on newly seen draws (to 14 px), then 6
+(to 162 px, the other boxer); now 0 of 59.4 million. Programs 4091 and 3C31 now dump 2.5 times the draws. Smoke OK.
+tools/interp_dump PGROUPS=1 lists perspective groups per program and their values per step.
+Next: GPU-VM at the same venue, then Harry.
 
 ### 2026-11-24 - Skin flicker: bodies pose at the game's steps, move with the camera (Harry's option 2)
 

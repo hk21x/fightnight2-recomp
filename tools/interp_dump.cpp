@@ -114,6 +114,20 @@ bool Read(const Mesh& m, int r, uint32_t i, float v[4]) {
     }
 }
 
+// vertex i's oPos (x y z w) with these registers
+bool Pos(const Mesh& m, const std::vector<float>& regs, uint32_t i, float out[4], gpu::State& s) {
+    std::memcpy(s.vsc.data(), regs.data(), regs.size() * 4);
+    gpu::vp::VertexProgram p{s};
+    for (int r = 0; r < 16; r++) {
+        float v[4];
+        Read(m, r, i, v);
+        p.in[r] = gpu::vp::V(v[0], v[1], v[2], v[3]);
+    }
+    p.Run(m.program);
+    for (int c = 0; c < 4; c++) out[c] = p.out[0][c];
+    return std::isfinite(out[0]) && std::isfinite(out[1]) && std::isfinite(out[2]) && out[3] > 1e-4f;
+}
+
 // vertex i's screen place (guest pixels, 640 wide) with these registers; false behind the camera
 bool Place(const Mesh& m, const std::vector<float>& regs, uint32_t i, float out[2], gpu::State& s) {
     std::memcpy(s.vsc.data(), regs.data(), regs.size() * 4);
@@ -186,6 +200,155 @@ int main(int argc, char** argv) {
         std::fprintf(stderr, "the file ends early\n");
     }
     std::printf("%zu meshes, %zu steps\n", meshes.size(), steps.size());
+    // OVERLAY=handle-suffix (hex, e.g. 2FB1): its vertices that sit on another skinned draw's vertex in the step's own
+    // drawing (screen place within 0.05 px, depth within 1e-5 of the depth range), and how far apart each pair is in
+    // the replays: a pass laid over the skin by depth that parts from it flickers
+    // COLOURS=1: every output but the position (oD0 oD1 oFog oT0..3) for each skinned vertex, at its step and in each
+    // replay: values not finite, or a colour outside 0..1 in a replay where the step's own was inside, or a colour more
+    // than 0.25 from the straight line between the two steps
+    if (std::getenv("COLOURS")) {
+        static gpu::State sc;
+        const char* names[16] = {"oPos", "", "", "oD0", "oD1", "oFog", "oPts", "oB0", "oB1", "oT0", "oT1", "oT2", "oT3", "", "", ""};
+        std::map<std::string, uint64_t> bad;
+        uint64_t checked = 0;
+        float worst = 0;
+        std::string worst_where;
+        const auto run = [&](const Mesh& m, const std::vector<float>& regs, uint32_t v, gpu::vp::Vec out[16]) {
+            std::memcpy(sc.vsc.data(), regs.data(), regs.size() * 4);
+            gpu::vp::VertexProgram p{sc};
+            for (int r = 0; r < 16; r++) {
+                float x[4];
+                Read(m, r, v, x);
+                p.in[r] = gpu::vp::V(x[0], x[1], x[2], x[3]);
+            }
+            p.Run(m.program);
+            for (int o = 0; o < 16; o++) out[o] = p.out[o];
+        };
+        for (size_t si = 1; si < steps.size(); si++) {
+            const Step& st = steps[si];
+            const Step& before = steps[si - 1];
+            std::map<uint32_t, const Draw*> by_index;
+            for (const Draw& d : st.draws) by_index[d.index] = &d;
+            for (const Replay& rp : st.replays)
+                for (const auto& [index, regs] : rp.draws) {
+                    const Draw* d = by_index[index];
+                    if (!d || d->prev < 0) continue;
+                    const Mesh& m = meshes[d->mesh];
+                    const Draw* p = nullptr;
+                    for (const Draw& o : before.draws) if (o.mesh == d->mesh) { p = &o; break; }
+                    if (!p) continue;
+                    std::vector<uint32_t> verts;
+                    for (size_t k = 0; k + 1 < m.indices.size(); k += 2) {
+                        uint16_t v;
+                        std::memcpy(&v, &m.indices[k], 2);
+                        verts.push_back(uint32_t(v) + d->base);
+                    }
+                    std::sort(verts.begin(), verts.end());
+                    verts.erase(std::unique(verts.begin(), verts.end()), verts.end());
+                    for (uint32_t v : verts) {
+                        gpu::vp::Vec a[16], b[16], r[16];
+                        run(m, p->vsc, v, a), run(m, d->vsc, v, b), run(m, regs, v, r);
+                        for (int o : {3, 4, 5, 9, 10, 11, 12}) {
+                            for (int c = 0; c < 4; c++) {
+                                checked++;
+                                const float x = r[o][c], xa = a[o][c], xb = b[o][c];
+                                if (!std::isfinite(x)) { bad[std::string(names[o]) + " not finite"]++; continue; }
+                                if (o == 3 || o == 4) {
+                                    const bool in_a = xa >= 0 && xa <= 1, in_b = xb >= 0 && xb <= 1;
+                                    if (in_a && in_b && (x < -0.01f || x > 1.01f)) bad[std::string(names[o]) + " out of 0..1"]++;
+                                }
+                                const float line = xa + (xb - xa) * rp.alpha, off = std::fabs(x - line);
+                                const float scale = std::max({1.0f, std::fabs(xa), std::fabs(xb)});
+                                if (off / scale > 0.25f) {
+                                    bad[std::string(names[o]) + " off the line by over 25%"]++;
+                                    if (off / scale > worst) {
+                                        worst = off / scale;
+                                        char w[256];
+                                        std::snprintf(w, sizeof w, "step %llu alpha %.2f vs %08X count %u vertex %u %s.%c: was %g now %g drawn %g",
+                                                      (unsigned long long)st.step, rp.alpha, d->vs, d->count, v, names[o], "xyzw"[c], xa, xb, x);
+                                        worst_where = w;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+        }
+        std::printf("%llu output values checked\n", (unsigned long long)checked);
+        for (auto& [k, n] : bad) std::printf("  %s: %llu\n", k.c_str(), (unsigned long long)n);
+        if (!worst_where.empty()) std::printf("  the worst: %s\n", worst_where.c_str());
+        return 0;
+    }
+    if (const char* ov = std::getenv("OVERLAY")) {
+        const uint32_t want = uint32_t(std::strtoul(ov, nullptr, 16));
+        static gpu::State st0;
+        uint64_t pairs = 0, parted = 0;
+        float most_z = 0, most_xy = 0;
+        std::map<int, uint64_t> by_z;  // log10 of the depth gap
+        for (const Step& st : steps) {
+            for (const Draw& o : st.draws) {
+                if ((o.vs & 0xFFFF) != want) continue;
+                const Mesh& om = meshes[o.mesh];
+                // the overlay's vertices now
+                std::vector<std::pair<uint32_t, std::array<float, 4>>> ov_now;
+                std::vector<uint32_t> verts;
+                for (size_t k = 0; k + 1 < om.indices.size(); k += 2) {
+                    uint16_t v;
+                    std::memcpy(&v, &om.indices[k], 2);
+                    verts.push_back(uint32_t(v) + o.base);
+                }
+                std::sort(verts.begin(), verts.end());
+                verts.erase(std::unique(verts.begin(), verts.end()), verts.end());
+                for (uint32_t v : verts) {
+                    float q[4];
+                    if (Pos(om, o.vsc, v, q, st0)) ov_now.push_back({v, {q[0], q[1], q[2], q[3]}});
+                }
+                // the other skinned draws' vertices now, the nearest to each overlay vertex
+                for (const Draw& b : st.draws) {
+                    if (&b == &o || (b.vs & 0xFFFF) == want) continue;
+                    const Mesh& bm = meshes[b.mesh];
+                    std::vector<uint32_t> bv;
+                    for (size_t k = 0; k + 1 < bm.indices.size(); k += 2) {
+                        uint16_t v;
+                        std::memcpy(&v, &bm.indices[k], 2);
+                        bv.push_back(uint32_t(v) + b.base);
+                    }
+                    std::sort(bv.begin(), bv.end());
+                    bv.erase(std::unique(bv.begin(), bv.end()), bv.end());
+                    for (uint32_t v : bv) {
+                        float q[4];
+                        if (!Pos(bm, b.vsc, v, q, st0)) continue;
+                        for (const auto& [ovv, oq] : ov_now) {
+                            if (std::fabs(oq[0] - q[0]) > 0.05f || std::fabs(oq[1] - q[1]) > 0.05f || std::fabs(oq[2] - q[2]) > 1e-5f * std::max(1.0f, std::fabs(q[2]))) continue;
+                            // a pair: in each replay, both with that replay's registers
+                            for (const Replay& rp : st.replays) {
+                                const std::vector<float>* ro = nullptr; const std::vector<float>* rb = nullptr;
+                                for (const auto& [i, regs] : rp.draws) { if (i == o.index) ro = &regs; if (i == b.index) rb = &regs; }
+                                if (!ro || !rb) continue;
+                                float a[4], c[4];
+                                if (!Pos(om, *ro, ovv, a, st0) || !Pos(bm, *rb, v, c, st0)) continue;
+                                pairs++;
+                                const float dz = std::fabs(a[2] - c[2]) / std::max(1.0f, std::fabs(c[2]));
+                                const float dxy = std::hypot(a[0] - c[0], a[1] - c[1]);
+                                most_z = std::max(most_z, dz), most_xy = std::max(most_xy, dxy);
+                                by_z[dz == 0 ? -99 : int(std::floor(std::log10(dz)))]++;
+                                if (dxy > 0.05f || dz > 1e-5f) parted++;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        std::printf("overlay ..%04X: %llu coincident pairs in replays, %llu parted (screen > 0.05 px or depth > 1e-5), the most: %.3f px, depth %.2e\n",
+                    want, (unsigned long long)pairs, (unsigned long long)parted, most_xy, most_z);
+        for (auto [e, n] : by_z) std::printf("  depth gap 1e%d: %llu\n", e, (unsigned long long)n);
+        return 0;
+    }
+    if (std::getenv("DUMP_PROGRAMS") && !steps.empty()) {
+        std::map<uint32_t, int> n;
+        for (const Draw& d : steps.back().draws) n[d.vs & 0xFFFF]++;
+        for (auto [vs, k] : n) std::printf("program ..%04X: %d skinned draws\n", vs, k);
+    }
     if (std::getenv("DUMP_INFO")) {
         for (const Step& st : steps) {
             std::printf("step %llu blended %u draws %zu replays", (unsigned long long)st.step, st.blended, st.draws.size());

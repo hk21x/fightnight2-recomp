@@ -206,6 +206,67 @@ int main(int argc, char** argv) {
     // COLOURS=1: every output but the position (oD0 oD1 oFog oT0..3) for each skinned vertex, at its step and in each
     // replay: values not finite, or a colour outside 0..1 in a replay where the step's own was inside, or a colour more
     // than 0.25 from the straight line between the two steps
+    // NONFINITE=1: registers not finite in the step's own drawing and in the replays, by register; and positions
+    // LAYERS=1: draws of one program and count with equal registers in the step's own drawing (a piece drawn twice,
+    // a layer over it by depth): are their registers still equal in each replay?
+    if (std::getenv("LAYERS")) {
+        uint64_t pairs = 0, parted = 0, groups_parted = 0;
+        std::map<std::string, uint64_t> where;
+        for (const Step& st : steps) {
+            for (size_t i = 0; i < st.draws.size(); i++)
+                for (size_t j = i + 1; j < st.draws.size(); j++) {
+                    const Draw& a = st.draws[i];
+                    const Draw& b = st.draws[j];
+                    if (a.vs != b.vs || a.count != b.count || a.vsc != b.vsc) continue;
+                    for (const Replay& rp : st.replays) {
+                        const std::vector<float>* ra = nullptr; const std::vector<float>* rb = nullptr;
+                        for (const auto& [k, regs] : rp.draws) { if (k == a.index) ra = &regs; if (k == b.index) rb = &regs; }
+                        if (!ra || !rb) continue;
+                        pairs++;
+                        if (*ra != *rb) {
+                            parted++;
+                            for (int g = 0; g < 48; g++)
+                                if (std::memcmp(&(*ra)[size_t(g) * 16], &(*rb)[size_t(g) * 16], 64)) {
+                                    groups_parted++;
+                                    char w[96];
+                                    std::snprintf(w, sizeof w, "vs ..%04X count %u group %d (registers %d-%d), prev %d/%d", a.vs & 0xFFFF, a.count, g, g * 4, g * 4 + 3, a.prev, b.prev);
+                                    where[w]++;
+                                }
+                        }
+                    }
+                }
+        }
+        std::printf("layer pairs (equal at their step) in replays: %llu, with different registers: %llu (%llu groups)\n",
+                    (unsigned long long)pairs, (unsigned long long)parted, (unsigned long long)groups_parted);
+        int shown = 0;
+        for (auto& [w, n] : where) if (shown++ < 25) std::printf("  %s: %llu\n", w.c_str(), (unsigned long long)n);
+        return 0;
+    }
+    if (std::getenv("NONFINITE")) {
+        std::map<int, uint64_t> own, rep;
+        std::map<int, std::pair<float, float>> example;
+        for (const Step& st : steps) {
+            std::map<uint32_t, const Draw*> by_index;
+            for (const Draw& d : st.draws) {
+                by_index[d.index] = &d;
+                for (int k = 0; k < 192 * 4; k++) if (!std::isfinite(d.vsc[size_t(k)])) own[k]++;
+            }
+            for (const Replay& rp : st.replays)
+                for (const auto& [i, regs] : rp.draws) {
+                    const Draw* d = by_index[i];
+                    for (int k = 0; k < 192 * 4; k++)
+                        if (!std::isfinite(regs[size_t(k)])) {
+                            rep[k]++;
+                            if (d && !example.count(k)) example[k] = {d->vsc[size_t(k)], regs[size_t(k)]};
+                        }
+                }
+        }
+        std::printf("registers not finite in the steps' own drawing: %zu kinds\n", own.size());
+        for (auto [k, n] : own) std::printf("  c%d.%c: %llu\n", k / 4 - 96, "xyzw"[k % 4], (unsigned long long)n);
+        std::printf("registers not finite in the replays: %zu kinds\n", rep.size());
+        for (auto [k, n] : rep) std::printf("  c%d.%c (register %d): %llu, e.g. step's %g, replay's %g\n", k / 4 - 96, "xyzw"[k % 4], k / 4, (unsigned long long)n, example[k].first, example[k].second);
+        return 0;
+    }
     if (std::getenv("COLOURS")) {
         static gpu::State sc;
         const char* names[16] = {"oPos", "", "", "oD0", "oD1", "oFog", "oPts", "oB0", "oB1", "oT0", "oT1", "oT2", "oT3", "", "", ""};
@@ -413,7 +474,14 @@ int main(int argc, char** argv) {
                         for (int row = 0; row < 3; row++) moved[size_t((8 + row) * 4 + 3)] += 5;
                         use = &moved;
                     }
-                    if (!Place(m, *use, v, r, s) || !Place(m, d->vsc, v, b, s)) continue;
+                    {
+                        const bool okr = Place(m, *use, v, r, s), okb = Place(m, d->vsc, v, b, s);
+                        static uint64_t lost = 0;
+                        if (okb && !okr && lost++ < 20)
+                            std::printf("  lost in a replay: step %llu alpha %.2f vs %08X count %u vertex %u (fine at its step)\n",
+                                        (unsigned long long)st.step, rp.alpha, d->vs, d->count, v);
+                        if (!okr || !okb) continue;
+                    }
                     if (!p || !Place(m, p->vsc, v, a, s)) continue;
                     // on or near the screen (640x480 layout, 854 wide on a wide frame) in all three
                     const auto near_screen = [](const float q[2]) { return q[0] > -400 && q[0] < 1040 && q[1] > -300 && q[1] < 780; };

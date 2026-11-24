@@ -14,10 +14,27 @@ Newest first. Each entry: date, what changed, what was learned, what's next.
 - Windows: 8303063 on GPU-VM (Arc, 1920x800, fps_cap 240): 40 minutes of every mode, smooth motion 170-210 fps in play;
   no sound there (no audio device). `\\192.168.1.229\Testing\fightnight2-test-8303063` ready for Harry
 - PAL 50 Hz: vblank_hz = 50, game time at real speed
-- Open: achievements (stopped), LT/RT tab markers still the old pad's L and R, video memory kept after textures are
+- Open: skin flicker with smooth motion on Harry's AMD card only (stopped 2026-11-24, see log); achievements (stopped), LT/RT tab markers still the old pad's L and R, video memory kept after textures are
   freed (1.07 GB after 40 min), the gym drills' instruction popups held at 16:9
 
 ## Log
+
+### 2026-11-24 - Skin flicker: it is the bodies' blend, on Harry's AMD card only (stopped: write-up)
+
+Harry: the flicker happens with every renderer thread arrangement and with D3D11; testB-bodies-not-blended.bat
+(XBE_INTERP_STEP_PROGRAMS with the nine skinned programs) stops it; testA (effects) does not.
+His two F11 dumps, through tools/interp_dump: every skinned draw's every output in every replay, run on the CPU
+through its own vertex program: 3.45 million positions none over 2 px off the straight line, 96 million other
+outputs (colours, texture coordinates, fog) none off it or not finite; no register not finite; no vertex lost (behind
+the camera) in a replay that was fine at its step; no pieces drawn as layers by depth (the repeated counts are the two
+boxers). GPU-VM (Intel Arc): no flicker, the renderer's state equal to the title's (XBE_CHECK_STATE), the vertex
+constant count never stale. So what is computed is right and reaches the renderer; on Harry's RX 7900 XT the bodies
+drawn with those blended constants flicker, and with the step's own they do not.
+Not known: what his card does differently. Needs his card's output: a GPU capture (RenderDoc or PIX) of a flickering
+in-between frame on his PC. Meanwhile choices for him: bodies at the game's steps (testB, a 50 a second judder
+against the ring), or bodies with the camera's move only (smooth with the scene, limbs at 50 a second; not built).
+Tests kept: XBE_INTERP_STEP_PROGRAMS, XBE_INTERP_NO_TABLE, XBE_INTERP_TABLE_ALL, XBE_INTERP_ROPE_CHECK (textures too),
+F11 dumps; tools/interp_dump with COLOURS=1, NONFINITE=1, LAYERS=1, OVERLAY=, SELFTEST=1.
 
 ### 2026-11-24 - Harry's F11 dumps: the in-between frames right on his PC too; the renderer's threads next
 

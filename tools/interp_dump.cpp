@@ -506,7 +506,21 @@ int main(int argc, char** argv) {
                     // on or near the screen (640x480 layout, 854 wide on a wide frame) in all three
                     const auto near_screen = [](const float q[2]) { return q[0] > -400 && q[0] < 1040 && q[1] > -300 && q[1] < 780; };
                     if (!near_screen(a) || !near_screen(b) || !near_screen(r)) continue;
-                    const float ex = a[0] + (b[0] - a[0]) * rp.alpha, ey = a[1] + (b[1] - a[1]) * rp.alpha;
+                    float ex = a[0] + (b[0] - a[0]) * rp.alpha, ey = a[1] + (b[1] - a[1]) * rp.alpha;
+                    // POSE_AT_STEP=1 (GameInfo::interp_bones_at_step): expected, the step's registers with only its
+                    // perspective groups blended from the step before's draw of the mesh
+                    static const bool pose_at_step = std::getenv("POSE_AT_STEP") != nullptr;
+                    if (pose_at_step) {
+                        std::vector<float> want = d->vsc;
+                        for (int g = 0; g < 48; g++) {
+                            const float* w = &d->vsc[size_t(g * 4 + 3) * 4];
+                            if (std::fabs(w[0]) + std::fabs(w[1]) + std::fabs(w[2]) <= 1e-3f) continue;
+                            for (int k = g * 16; k < g * 16 + 16; k++) want[size_t(k)] = p->vsc[size_t(k)] + (d->vsc[size_t(k)] - p->vsc[size_t(k)]) * rp.alpha;
+                        }
+                        float e[2];
+                        if (!Place(m, want, v, e, s)) continue;
+                        ex = e[0], ey = e[1];
+                    }
                     const float off = std::hypot(r[0] - ex, r[1] - ey);
                     checked++;
                     static int shown = 0;

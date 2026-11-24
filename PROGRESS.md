@@ -9,15 +9,27 @@ Newest first. Each entry: date, what changed, what was learned, what's next.
 - Push buffers: none recorded (no RunPushBuffer/CreatePushBuffer, Ghidra scan); EAGL's BeginPush/EndPush at 9 sites,
   decoded by the runtime
 - Smoke: `scripts/smoke.sh` (scripts/pad/fight.txt) SMOKE OK
-- GitHub: hk21x/fightnight2-recomp (private), main pushed; SDK on fork branch fn2-hold-aspect 6a3d9df (fork main
+- GitHub: hk21x/fightnight2-recomp (private), main pushed; SDK on fork branch fn2-hold-aspect 899b30e (fork main
   5af29c1 + FN2's runtime changes), to gate before fork main
 - Windows: 8303063 on GPU-VM (Arc, 1920x800, fps_cap 240): 40 minutes of every mode, smooth motion 170-210 fps in play;
   no sound there (no audio device). `\\192.168.1.229\Testing\fightnight2-test-8303063` ready for Harry
 - PAL 50 Hz: vblank_hz = 50, game time at real speed
-- Open: skin flicker with smooth motion on Harry's AMD card only (stopped 2026-11-24, see log); achievements (stopped), LT/RT tab markers still the old pad's L and R, video memory kept after textures are
+- Open: skin flicker with smooth motion on Harry's AMD card: bodies now pose at the steps (899b30e), to test; achievements (stopped), LT/RT tab markers still the old pad's L and R, video memory kept after textures are
   freed (1.07 GB after 40 min), the gym drills' instruction popups held at 16:9
 
 ## Log
+
+### 2026-11-24 - Skin flicker: bodies pose at the game's steps, move with the camera (Harry's option 2)
+
+Harry ran the tests: B (bodies not blended) stops the flicker on his card. He chose option 2.
+GameInfo::interp_bones_at_step (FN2 on): in an in-between frame, a skinned draw keeps the step's registers, except
+perspective groups (last row not 0 0 0 1: the camera transform at c180-183 and the other projections), which are
+blended. So the bodies move smoothly with the camera and the ring, and their limbs pose 50 times a second.
+The first build (82884bf) held only rigid bones and blended squashed ones. That tore bodies on GPU-VM
+(rings/bas2 b1 039, b2 002, b4 054-055); 899b30e holds every non-perspective group.
+Check: tools/interp_dump with POSE_AT_STEP=1 on 38 headless dumps: 1 vertex over 2 px off the expected line, against
+38952 for a full blend. Smoke OK.
+Next: GPU-VM marked lean/punch bursts for torn bodies, then Harry.
 
 ### 2026-11-24 - Skin flicker: it is the bodies' blend, on Harry's AMD card only (stopped: write-up)
 
@@ -286,7 +298,7 @@ Harry away; tests with no one at the pad (GPU-VM, scripted pad and keys, desktop
 - **Found and fixed:** on a wide frame the pause menu's (and every popup's) orange side strips, selection brackets and
   row bands stood out to the sides of the 16:9 box. They are untextured 2D drawn by program B0101FB1, which computes w
   first, then x, y (beside an rcc), z; gpu::MatrixProgram only knew x, y, z, w in order, so they were never squeezed.
-  SDK fork fn2-hold-aspect 6a3d9df: the four dp4s in any order, each into its own lane of oPos. Seen fixed on 8303063
+  SDK fork fn2-hold-aspect 899b30e: the four dp4s in any order, each into its own lane of oPos. Seen fixed on 8303063
   (pause, quit training, training tips, the gym's pause). SMOKE OK.
 - **Seen, not fixed:** Create Champ's tab markers show the old pad's L and R (modern: LT and RT); the gym drills'
   instruction popups are held at 16:9 with the blurred sides until the drill starts; video memory 584 MB through the

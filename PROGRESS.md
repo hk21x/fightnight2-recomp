@@ -19,6 +19,18 @@ Newest first. Each entry: date, what changed, what was learned, what's next.
 
 ## Log
 
+### 2026-11-24 - Shoulder spikes: the bone table took groups from unrelated draws
+
+Harry's recording on f784e33 (05:58): a spike of skin out of the upper shoulder for 1-2 steps while leaning and on a
+hit, counts all 0. Probed the table's large turns on a leaning headless fight (.local/lean.txt: LT and the right
+stick): register 4 of B00035B1 (an effect's texture transform, (1 0 0 0) one step, (0 0.25 0 0) the next) shared
+entries with any bone of equal value, since every matched draw voted (c599660); a boxer's bone equal to it took that
+step-before value. SDK fork fn2-hold-aspect 5d71a67: only draws skinned in either step vote, a key includes its
+register, and the bone hold measures the table's own turns. Headless: keys with two values ~3000 -> ~250 a 10 s,
+seams 0, 431 of 501 blended (bone holds ~14%, matching the turns). GPU-VM 67fa726, Staples and Fairgrounds, lean
+then punches, 8 marked bursts: 411-496 of 500 blended, seams 0, shoulders whole in the worst in-between grabs,
+a hit included. Also added: steps-held reasons in the log (a bone's turn, nothing moved, a camera cut).
+
 ### 2026-11-24 - Skin flicker on f784e33: counts all 0 on Harry's PC, cause not yet seen here
 
 Harry: still flickering on f784e33; smooth motion off stops it. His log (05:48): skinned unmatched 0, outside the

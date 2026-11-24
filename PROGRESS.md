@@ -19,6 +19,16 @@ Newest first. Each entry: date, what changed, what was learned, what's next.
 
 ## Log
 
+### 2026-11-24 - Retest of the shoulder-spike fix: A/B on one build
+
+Harry asked how sure. XBE_INTERP_TABLE_ALL=1 restores the old table; a check counts table groups whose step-before
+value is not the piece's own matched draw's, and the steps with one more than 0.5 off (log each 10 s). Same leaning
+headless fight, 2 minutes: old table 23 such steps, up to 3.5 off (an upper-body piece, B0003671 61 indices);
+5d71a67 2, up to 2.3 (a majority of pieces outvoting the right value); f7a3be0 (nearest step-before value to now,
+not the majority) 2, up to 0.86. GPU-VM 38ed1ed, about 3.5 minutes each at the Staples Center and County Fairgrounds,
+leaning and punching: 1 and 2 steps, up to 0.56 and 0.70 off, seams 0. Not shown in pictures: the old-mode headless
+moment fell on the arena intro shot, no boxer on screen.
+
 ### 2026-11-24 - Shoulder spikes: the bone table took groups from unrelated draws
 
 Harry's recording on f784e33 (05:58): a spike of skin out of the upper shoulder for 1-2 steps while leaning and on a

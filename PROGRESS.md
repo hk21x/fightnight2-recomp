@@ -19,6 +19,15 @@ Newest first. Each entry: date, what changed, what was learned, what's next.
 
 ## Log
 
+### 2026-11-24 - Skin flicker on f784e33: counts all 0 on Harry's PC, cause not yet seen here
+
+Harry: still flickering on f784e33; smooth motion off stops it. His log (05:48): skinned unmatched 0, outside the
+table 0, seams 0, 381 of 463 steps blended. Ruled out since: a tone pop at own <-> in-between switches (marked
+bursts: body-area colour change by transition kind, no jump); world_textures (his setting; sharp copies dropped only
+at the fight's load, 29 at 51.8 s; tone unchanged with it on, GPU-VM bursts with his settings). The GPU-VM bursts at
+1920x800 show the bodies whole. Needed: a recording of the flicker on this build to see what changes.
+Note: started a GPU-VM run after lending it to the Bulletproof session; stopped it when told. Ask before using it.
+
 ### 2026-11-23 - Skin flicker: every skinned piece matched
 
 Harry: smooth motion off stops the flicker. His fc57a26 log: 308 unmatched skinned pieces and 6,749 groups outside the

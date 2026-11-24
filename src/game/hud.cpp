@@ -5,6 +5,7 @@
 #include <cstdint>
 
 #include "app/app.h"
+#include "gpu/backend.h"
 #include "core/log.h"
 #include "kernel/kernel.h"
 
@@ -25,10 +26,15 @@ void HudTick() {
     }
 }
 
-// F9 (not a repeat): the HUD hidden or shown, and saved
+// F9 (not a repeat): the HUD hidden or shown, and saved. F11: the last second and a half of smooth motion's data
+// written beside the exe (gpu::RequestInterpDump), to find the skin flicker seen on Harry's PC
 bool HudKey(void* /*hwnd*/, uint32_t msg, uintptr_t wp, intptr_t lp, intptr_t* /*result*/) {
     constexpr uint32_t kKeyDown = 0x100;
-    constexpr uintptr_t kF9 = 0x78;
+    constexpr uintptr_t kF9 = 0x78, kF11 = 0x7A;
+    if (msg == kKeyDown && wp == kF11 && !(lp & (1 << 30))) {
+        gpu::RequestInterpDump();
+        return true;
+    }
     if (msg != kKeyDown || wp != kF9 || (lp & (1 << 30))) return false;
     hide_hud = !hide_hud;
     app::Save();

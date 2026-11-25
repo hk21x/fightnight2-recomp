@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/img/fightnight2-banner.webp" alt="Fight Night Round 2, native PC port: Bernard Hopkins walking out to the ring under the pyrotechnics" width="100%">
+  <img src="docs/img/fightnight2-banner.webp" alt="Fight Night Round 2, native PC port of the Xbox game: Bernard Hopkins walking out to the ring under the pyrotechnics" width="100%">
 </p>
 
 <p align="center">

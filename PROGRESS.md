@@ -19,6 +19,12 @@ Newest first. Each entry: date, what changed, what was learned, what's next.
 
 ## Log
 
+### 2026-11-25 - README header titled, as Agent Under Fire's
+
+Harry: the header image in Agent Under Fire's style. docs/img/fightnight2-banner.webp is now 1400x400 (AUF's size): the
+walk-out, darkened towards the left, "Fight Night Round 2" in DejaVu Sans Bold 58 and "Native PC port of the Xbox game"
+in DejaVu Sans 30, gold #d8c281, at AUF's places (measured from its banner). .local/gpuvm/readme/title.sh makes it.
+
 ### 2026-11-25 - v1.0 tagged (a draft release)
 
 Harry tested the packaged launcher (C:\Testing\fn2-launcher-test: the disc, Get the game ready, Play) and asked for the

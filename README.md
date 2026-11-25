@@ -15,7 +15,7 @@
 </p>
 
 <p align="center">
-  <img src="docs/img/fightnight2-hero.webp" alt="Bernard Hopkins landing a punch on Winky Wright at the Staples Center, at 21:9 with the health bars at the screen's corners" width="800">
+  <img src="docs/img/fightnight2-hero.webp" alt="Bernard Hopkins landing a punch on Winky Wright at the Staples Center, at 21:9 with the health and stamina bars in proportion" width="800">
 </p>
 
 **The 2005 Xbox boxing game, running natively on PC.** This is not an emulator. The game's own x86 code is statically
@@ -65,7 +65,7 @@ the game's own picture, and with smooth motion on, the fights at your frame rate
 |---|---|
 | **Widescreen** | True proportions on any screen, 21:9 and wider included. The fights fill the screen with the arena's view widened; the menus keep their 16:9 shape in the middle with a dimmed, blurred copy filling the sides. |
 | **Aspect, changed as you play** | From the screen's shape, 16:9 or fill the screen, applied at once, mid-fight too. |
-| **HUD at the edges** | On a wide screen the health and stamina bars sit at the screen's corners, not squeezed into the middle. **F9** hides the HUD for screenshots. |
+| **HUD in proportion** | The health and stamina bars, the menus and the button pictures keep their shape and size on any screen: on a wide one they stay where a 16:9 TV shows them, never stretched. **F9** hides the HUD for screenshots. |
 | **Smooth motion** | The game moves its fighters 50 times a second; turned on, the fights are drawn with frames in between, up to your frame rate cap: the camera and the ring glide at 144 or 240 frames a second. The game's speed is unchanged. |
 | **Sharper graphics** | Render scale up to 200%, MSAA up to 8x, FXAA or SMAA, sharpening, anisotropic filtering, enhanced textures, and sharp text and HUD. |
 | **PC Settings** | **F1** opens the settings window anywhere, over the game. Saved in `settings.toml`. |
@@ -78,14 +78,15 @@ the game's own picture, and with smooth motion on, the fights at your frame rate
 <sup>[(Back to top)](#table-of-contents)</sup>
 
 <p align="center">
-  <img src="docs/img/fightnight2-widescreen.webp" alt="The same punch at 16:9 and at 21:9: the arena widens and the health bars move out to the screen's corners" width="800">
+  <img src="docs/img/fightnight2-widescreen.webp" alt="The same punch at 16:9 and at 21:9: the arena widens, the health bars keep their size and place" width="800">
   <br>
   <i>ASPECT RATIO: 16:9 and fill the screen (21:9), in a 1920x800 window, half a second apart.</i>
 </p>
 
-In a fight the arena's view is widened to your screen's shape, and the health and stamina bars move out to its
-corners. The aspect can be changed in the settings while you fight, and the view and HUD follow at once. The game's 2D
-is laid out for 16:9, so 16:9 is the narrowest shape: a 4:3 choice shows 16:9.
+In a fight the arena's view is widened to your screen's shape. The HUD, the menus and the button pictures are laid out
+for 16:9 and keep that shape and size: on a wider screen they stay where a 16:9 TV shows them, and on a 4:3 or 16:10
+screen the whole 16:9 picture fits with black above and below, so nothing is stretched or squeezed. The aspect can be
+changed in the settings while you fight, and the view follows at once; a 4:3 choice shows 16:9.
 
 <p align="center">
   <img src="docs/img/fightnight2-menus.webp" alt="The main menu and Select Boxer at 16:9 in the middle of a 21:9 screen, a blurred copy at the sides" width="800">
@@ -93,7 +94,7 @@ is laid out for 16:9, so 16:9 is the narrowest shape: a 4:3 choice shows 16:9.
   <i>The menus keep their 16:9 shape on a wide screen, a dimmed, blurred copy at the sides.</i>
 </p>
 
-The walk-ins, the replays and the knockdowns fill the screen as the fights do.
+The walk-ins, the replays and the knockdowns fill the screen as the fights do. The movies keep their 4:3 shape, with black at the sides.
 
 ## Smooth motion
 <sup>[(Back to top)](#table-of-contents)</sup>
@@ -239,7 +240,7 @@ To remove everything, delete the launcher and its `FightNight2` folder (keep `pl
 <summary><b>Is this an emulator?</b></summary>
 <br>
 No. The game's x86 code is translated ahead of time into C++ and built as a Windows program. The Xbox's graphics,
-sound and input are rebuilt for the PC underneath it. That is what makes true widescreen with the HUD at the edges,
+sound and input are rebuilt for the PC underneath it. That is what makes true widescreen with the HUD in proportion,
 smooth motion at high frame rates and Total Punch Control on the mouse possible.
 </details>
 

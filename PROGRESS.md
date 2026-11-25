@@ -19,6 +19,23 @@ Newest first. Each entry: date, what changed, what was learned, what's next.
 
 ## Log
 
+### 2026-11-25 - Movies with black sides; the HUD's proportions checked at five shapes
+
+Harry (launcher test, a fresh install with skip_intro off): the EA Sports movie at 21:9 had the menus' blurred copy at
+the sides. src/game/movies.cpp marks a movie playing for the length of 0xCD9B0's call (it waits for the movie's end);
+FrameHeld (bars_backdrop) is false meanwhile: black sides. Headless log: easports.nfx 1.6-6.7 s, then intro.nfx;
+GPU-VM 8e045ea: the logo with plain black at the sides. Smoke OK.
+HUD check (Harry asked: 4:3 vs 16:9 vs 21:9), GPU-VM windows 1066x800, 1280x800, 1422x800, 1920x800 (fill and 16:9):
+the fight's blue health box 52x39, 62x47, 70x52, 70x52, 70x52 = 0.75, 0.9 and 1 times the frame's height, shape 1.33
+to 1.35 (pixel rounding); at 21:9 fill it is at x 274 as at the 16:9 setting (the 2D stays in the 16:9 layout,
+squeeze_screen_programs). Main menu, Select Boxer (stats, prompts) and the pause panel, each shape's 16:9 area scaled
+to 1422x800: the same layout (only the menu boxers' idle differs). FN2 has no 4:3: a 4:3 window shows the 16:9 frame
+with black above and below. README and v1.0 notes corrected: the HUD is not moved to the corners. Tool:
+.local/gpuvm/hudcheck/measure.py, seq_hud.txt.
+recomp-vm: an incremental build relinked FightNight2.exe and left the older FightNight2.dll, which the game then takes
+as stale (game_code.cpp: current when newer than the exe); a folder without compiler\ cannot rebuild it. Open (SDK
+cmake): relink the DLL whenever the exe relinks. Releases come from clean builds meanwhile.
+
 ### 2026-11-25 - The packaged launcher, as 50 Cent's and Juiced's (CMakeLists.txt, launcher/, prebuilt-test.bat, release-package.bat)
 
 Harry asked for the newer launcher. As 50 Cent's v1.0: XBE_GAME_DLL on Windows (FN2_LINKED_CODE turns it off),

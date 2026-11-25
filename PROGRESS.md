@@ -19,6 +19,26 @@ Newest first. Each entry: date, what changed, what was learned, what's next.
 
 ## Log
 
+### 2026-11-25 - Quit Game on the title menu, in the game's own menu (APT movie edited as it loads)
+
+Harry asked for in-game PC settings, achievements, Quit Game, levelled sound, unlock all, HUD at the edges and the tab
+markers. Measured first, sound (WAV of a headless fight, sdk/scripts/wavstats.py): menus -21 dB RMS, fights -18 to -22,
+peaks no higher than -4.2 dB, no clipped samples in 129 s: nothing for level_output to do; left off.
+The front end is EA's APT (Flash-like) in FEAPT\overlay.viv: BIGF archives, each screen RefPack-packed
+(screensfe\NAME.big: NAME.apt, .const, ...). tools/apt/refpack.py unpacks them, tools/apt/aptdis.py disassembles
+(AVM1 with EA's opcodes: 0xA2 a pool constant, 0xAE a variable, 0x59/0x5A 0/1, 0xB5 a byte, 0xAF a member, 0xB2 a
+method call by name; branch offsets 4-byte aligned, from the instruction's end). Every file comes through the RefPack
+decompressor 0x2301D0 (source, destination): src/game/menus.cpp edits the title menu there before it runs.
+- The PAL title menu builds five rows; the widget takes six (NTSC: Play Online). Now [4] EA Extras and [5] "$8", the
+  string table's QUIT (each language); the GameCube's input mapping (rows 0-5, the sixth goPlayOnline); the sixth
+  row's strip (ExtraTapeM, ExtraTape2M at depth 39, placed at y 281) left visible; goPlayOnline's hardware test made to
+  pass so its own popup asks, its title and text rewritten in the .const ("QUIT", "UNSAVED PROGRESS WILL BE LOST.
+  QUIT TO WINDOWS?", NO first). YES runs goOnline: callGF("FEA_InitEasoApt"), not registered in this release; the
+  function table's bsearch (0x260D54 on 0x38F3C8, from callGF's 0xCC650) sees it on MAINMENU and quits.
+- Screens: FeInitScreen 0x9A880 names each screen (src/game/screens.cpp, fn2::Screen()).
+- Headless: the row with its strip, the popup, YES: "Quit Game (the title menu)", Exit (0). Smoke OK.
+Next: the tab markers, unlock all, then the PC settings page and achievements.
+
 ### 2026-11-25 - README header titled, as Agent Under Fire's
 
 Harry: the header image in Agent Under Fire's style. docs/img/fightnight2-banner.webp is now 1400x400 (AUF's size): the

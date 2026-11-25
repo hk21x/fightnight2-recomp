@@ -24,8 +24,10 @@ Newest first. Each entry: date, what changed, what was learned, what's next.
 Harry tested the packaged launcher (C:\Testing\fn2-launcher-test: the disc, Get the game ready, Play) and asked for the
 release. The tag v1.0 (d74d861) pushed: the workflow builds FightNight2Launcher.exe and makes a draft with
 docs/releases/v1.0.md as its notes. recomp-vm's clean d74d861 package (fn2-launcher-test2): 73,503,711 bytes, sha256
-b32ec36a...2f54ad92bd. Next: Harry checks the draft, builds the package on his PC from a clean checkout (build.bat,
-release-package.bat), attaches FightNight2-package.zip and its .json, and publishes.
+b32ec36a...2f54ad92bd. The release package (Harry asked for it built for him): recomp-vm, a fresh clone at v1.0 (d74d861, sdk 361b102), CI=1
+build.bat and release-package.bat with LLVM 22.1.3: FightNight2-package.zip 73,503,713 bytes, sha256
+4bc2ce575143da3222dc5e358b59d68ed31d2bd9426f971042974af579ad1f9d, its .json matching; 28 files, no game code or
+assets; in C:\Testing\fightnight2-release-v1.0, the clone deleted. Next: Harry attaches both to the draft, publishes.
 
 ### 2026-11-25 - Movies with black sides; the HUD's proportions checked at five shapes
 

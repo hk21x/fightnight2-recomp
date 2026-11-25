@@ -2,6 +2,9 @@
 # every scan rewrites it, so nothing is edited there: it is included here, and everything added by hand goes below.
 includes = ["game.toml"]
 
+[xbe]
+library = "FightNight2.dll"  # the game code DLL the first start builds (Windows, XBE_GAME_DLL); this config is the one it reads
+
 [symbols]
 IDirectSoundBuffer_Pause = 0x2C4374  # .XTLID 0xB0057 (True Crime's id too); 0x1C bytes shaped like Play 0x2C4314 and Stop 0x2C4338: this-0x1C, call 0x2C3C4F, ret 8
 

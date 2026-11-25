@@ -8,5 +8,6 @@
     },
     "repo": "https://github.com/hk21x/fightnight2-recomp.git",
     "branch": "main",
-    "toolchain": "https://raw.githubusercontent.com/hk21x/fightnight2-recomp/main/launcher/toolchain.json"
+    "toolchain": "https://raw.githubusercontent.com/hk21x/fightnight2-recomp/main/launcher/toolchain.json",
+    "package": "FightNight2-package.zip"
 }

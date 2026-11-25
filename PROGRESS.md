@@ -19,6 +19,16 @@ Newest first. Each entry: date, what changed, what was learned, what's next.
 
 ## Log
 
+### 2026-11-25 - The packaged launcher, as 50 Cent's and Juiced's (CMakeLists.txt, launcher/, prebuilt-test.bat, release-package.bat)
+
+Harry asked for the newer launcher. As 50 Cent's v1.0: XBE_GAME_DLL on Windows (FN2_LINKED_CODE turns it off),
+config library FightNight2.dll, game.json package FightNight2-package.zip, prebuilt-test.bat and release-package.bat
+(50 Cent's, renamed), tags make a draft release and need docs/releases/<tag>.md, MinGit's busybox edition in
+toolchain.json. sdk/launcher and cmake/XbeRecomp.cmake identical to 50 Cent's SDK. docs/releases/v1.0.md written for
+the package; README's Getting started too. Linux: recompile and SMOKE OK.
+Next: recomp-vm builds (out\ deleted first), prebuilt-test.bat's first start, release-package.bat, launcher.bat; then
+the tag v1.0 (a draft) for Harry to attach the package and publish.
+
 ### 2026-11-25 - README in 50 Cent's and Juiced's form, shots from GPU-VM
 
 Harry confirmed the skin flicker fixed on c3c33bb and asked for the README like 50 Cent's and Juiced's.

@@ -212,16 +212,25 @@ Windows and no admin rights needed. It and a build from source both make the gam
 disc: it is never downloaded, only the program around it.
 
 1. Download `FightNight2Launcher.exe` from the [latest release](https://github.com/hk21x/fightnight2-recomp/releases/latest).
-2. Put it in a folder of its own with a short path (for example `C:\Games\FightNight2`) and run it. Windows may warn
-   about an unrecognised app: choose **More info**, then **Run anyway**.
+2. Put it in a folder of its own with a short path (for example `C:\Games\FightNight2`) and run it. Everything it makes
+   goes in a `FightNight2` folder beside it. Windows may warn about an unrecognised app: choose **More info**, then
+   **Run anyway**.
 3. **Your game:** choose your disc image (`.iso`) or the folder with the disc's files. The launcher checks that it is
    the supported release (Europe).
-4. **Get the game ready:** accept Microsoft's license for its C++ libraries and press **Build**: your PC builds the
-   game's code from your disc. You can stop at any time; it carries on where it left off.
+4. **Get the game ready:** the launcher downloads the game's package (the program and a compiler, no game code), then
+   your PC builds the game's code from your disc, in about a minute. You can stop at any time; it carries on where it
+   left off.
 5. **Play.** In the game, **F1** opens the PC settings.
 
-When a new release is out, the launcher offers it at the top of its window. The game is built again with the new
-version, keeping your saves and settings.
+When a new release is out, the launcher offers it at the top of its window: **Update the launcher**, then **Update**.
+The game is built again with the new version, keeping your saves and settings.
+
+Files, all under the `FightNight2` folder beside the launcher:
+- `play\`: `FightNight2.exe`, `FightNight2.dll` (the game's code, built on your PC), `settings.toml`, `hdd\` (your
+  saves and records), `logs\`, `screenshots\`, `compiler\`
+- `launcher.log`, the launcher's log (send it with any problem)
+
+To remove everything, delete the launcher and its `FightNight2` folder (keep `play\hdd` if you want your saves).
 
 ## FAQ
 <sup>[(Back to top)](#table-of-contents)</sup>

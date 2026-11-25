@@ -19,6 +19,17 @@ Newest first. Each entry: date, what changed, what was learned, what's next.
 
 ## Log
 
+### 2026-11-25 - Tab markers (LT/RT): where they are, not yet drawn
+
+The old pad's trigger markers are two DXT3 32x32 textures bound together: a grey rounded rectangle (FNV-1a of level 0
+CBB599BB6A516449) and a white letter, L FD81B39ECEB45181 (seen bound on the title menu and My Corner, FN2_PICS_LOG=1);
+the R not yet seen. Screens with them (L1_button / R1_button in their .const): Create Champ's build, hair, head,
+physique, accessories and ratings pages, Career's fight store and fight preps. The disc's bytes do not give the hashes
+(not even the A disc's is found in FE\ART, the APT .xsh, PRELOAD: the textures are converted as they load), so the R
+needs one bind seen in game. Headless, Create Champ goes through Profile Manager (NEW/LOAD) and the name entry; too
+slow to step blind. Next: GPU-VM in real time to a Create Champ page, FN2_PICS_LOG=1; then the two letters drawn as
+LT and RT (buttons.cpp, Kind as the face buttons).
+
 ### 2026-11-25 - Quit Game on the title menu, in the game's own menu (APT movie edited as it loads)
 
 Harry asked for in-game PC settings, achievements, Quit Game, levelled sound, unlock all, HUD at the edges and the tab

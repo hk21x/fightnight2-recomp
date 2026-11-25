@@ -26,8 +26,13 @@ config library FightNight2.dll, game.json package FightNight2-package.zip, prebu
 (50 Cent's, renamed), tags make a draft release and need docs/releases/<tag>.md, MinGit's busybox edition in
 toolchain.json. sdk/launcher and cmake/XbeRecomp.cmake identical to 50 Cent's SDK. docs/releases/v1.0.md written for
 the package; README's Getting started too. Linux: recompile and SMOKE OK.
-Next: recomp-vm builds (out\ deleted first), prebuilt-test.bat's first start, release-package.bat, launcher.bat; then
-the tag v1.0 (a draft) for Harry to attach the package and publish.
+recomp-vm (706c227, out\ deleted first): build.bat FightNight2.exe 6.7 MB, FightNight2.dll 13.0 MB, compiler clang
+22.1.3. prebuilt-test.bat: the first start compiled the game's code from the disc in 61 s and waited on "Your game is
+built." for Start (closed there it exits 1: not a hang); Enter, and the D3D12 adapter and steady frames. Second start
+frames in 12 s. release-package.bat: FightNight2-package.zip 73,503,637 bytes, sha256 f8464758...2c40080b3d, its .json
+matching; 28 files, no game code, no assets. launcher.bat: FightNight2Launcher.exe 2.5 MB.
+Next: Harry runs the launcher in C:\Testing\fn2-launcher-test (the launcher and the package; recomp-vm cannot see an
+ImGui window with his RDP session disconnected); then the tag v1.0 (a draft), the package attached by Harry.
 
 ### 2026-11-25 - README in 50 Cent's and Juiced's form, shots from GPU-VM
 

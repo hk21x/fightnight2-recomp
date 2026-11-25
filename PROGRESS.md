@@ -14,10 +14,23 @@ Newest first. Each entry: date, what changed, what was learned, what's next.
 - Windows: 8303063 on GPU-VM (Arc, 1920x800, fps_cap 240): 40 minutes of every mode, smooth motion 170-210 fps in play;
   no sound there (no audio device). `\\192.168.1.229\Testing\fightnight2-test-8303063` ready for Harry
 - PAL 50 Hz: vblank_hz = 50, game time at real speed
-- Open: skin flicker with smooth motion on Harry's AMD card: bodies now pose at the steps (c3c33bb), Harry to test; achievements (stopped), LT/RT tab markers still the old pad's L and R, video memory kept after textures are
+- Open: skin flicker with smooth motion on Harry's AMD card: fixed (c3c33bb, Harry 2026-11-25: bodies pose at the steps); achievements (stopped), LT/RT tab markers still the old pad's L and R, video memory kept after textures are
   freed (1.07 GB after 40 min), the gym drills' instruction popups held at 16:9
 
 ## Log
+
+### 2026-11-25 - README in 50 Cent's and Juiced's form, shots from GPU-VM
+
+Harry confirmed the skin flicker fixed on c3c33bb and asked for the README like 50 Cent's and Juiced's.
+Fights and walk-ins are not repeatable (the walk-in sequence differs run to run), so the settings shots are one paused
+instant replay (pause > Instant Replay, A pauses, BACK hides the panel, Y the shoulder camera) with the settings
+switched live between F12 shots: FN2_PAD_FILE's new SET:key=value words (render, msaa, edge, sharpen, aspect, hud;
+src/common/test_pad.cpp). 16:9 vs 21:9 are live fight shots 1.4 s apart (the aspect settles in 200 ms). A 4:3 choice
+shows 16:9 in FN2 (by design: its 2D is 16:9). The F1 window only shows in desktop captures (F12 saves the game's
+frame). docs/img/fightnight2-*.webp: banner (a walk-in), hero, wipe (animated), widescreen, menus, pc-settings
+(animated), edges, MSAA, SMAA, sharpening (the Staples Center's corner post, 2x).
+Tooling in .local/gpuvm: shot.sh NAME "settings" SEQFILE (a timed pad sequence played on the VM by seq.ps1), route.sh,
+readme/make.sh. GPU-VM lent by the Bulletproof session.
 
 ### 2026-11-24 - Bodies at step: the shorts tore, pieces with a squashed first bone were missed
 

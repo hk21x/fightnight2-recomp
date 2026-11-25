@@ -75,7 +75,8 @@ void Decide() {
 
 namespace fn2 {
 // the frame held at 16:9 (the front end, a cutscene): GameInfo::bars_backdrop, a blurred copy of it at the sides
-bool FrameHeld() { return g_front && g_chosen > kWide + 1e-3f; }
+bool MoviePlaying();  // src/game/movies.cpp: a movie's sides black
+bool FrameHeld() { return g_front && g_chosen > kWide + 1e-3f && !MoviePlaying(); }
 
 // GameInfo::frame_aspect (aspect_live: every aspect choice applies at once, the console a widescreen TV): the front
 // end at 16:9 (its 2D is 16:9 art), a fight at the setting's shape; never under 16:9, the game's 2D being laid out for

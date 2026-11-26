@@ -18,6 +18,7 @@ float FrameShape(float chosen);                          // src/game/ultrawide.c
 bool smooth_motion = true;                               // the setting
 bool skip_intro = false;                                 // the setting (src/game/movies.cpp)
 extern bool hide_hud;                                    // src/game/hud.cpp
+extern bool unlock_all;                                  // src/game/unlock.cpp
 bool HudKey(void* hwnd, uint32_t msg, uintptr_t wp, intptr_t lp, intptr_t* result);
 
 
@@ -93,6 +94,8 @@ void Init() {
     if (const char* e = std::getenv("FN2_SKIP_INTRO"); e && *e) skip_intro = *e == '1';
     if (skip_intro) LOGR("fn2: the intro movies are skipped (skip_intro)");
     if (const char* e = std::getenv("FN2_HIDE_HUD"); e && *e) hide_hud = *e == '1';
+    if (const char* e = std::getenv("FN2_UNLOCK_ALL"); e && *e) unlock_all = *e == '1';
+    if (unlock_all) LOGR("fn2: everything unlocked (unlock_all)");
     if (const char* e = std::getenv("FN2_SMOOTH_MOTION"); e && *e) smooth_motion = *e == '1';
     if (hide_hud) LOGR("fn2: the HUD is hidden (hide_hud)");
     if (const char* e = std::getenv("FN2_MODERN_BUTTONS"); e && *e) {
@@ -122,6 +125,9 @@ const app::GameInfo app::kGame = {
         {"hide_hud", &fn2::hide_hud, nullptr, "Hide the HUD",
          "The fight's health and stamina bars and round card left out (the pause menu's HUD switch, held off). F9 in "
          "play switches it."},
+        {"unlock_all", &fn2::unlock_all, nullptr, "Unlock everything",
+         "Every venue, boxer, and Create Champ and fight store item available. Your save keeps its own progress: turned "
+         "off, the game is as you left it. Takes effect as each menu is opened."},
         {"smooth_motion", &fn2::smooth_motion, nullptr, "Smooth motion",
          "In a fight, frames in between the game's own (it moves 50 times a second) up to the frame cap; the game's speed "
          "is unchanged. Needs a frame cap above 50 to show: 100 or more (on a 280 Hz screen, 140 or 280). Off, the fight "

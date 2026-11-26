@@ -19,6 +19,17 @@ Newest first. Each entry: date, what changed, what was learned, what's next.
 
 ## Log
 
+### 2026-11-26 - Unlock everything (setting unlock_all, the Game page)
+
+The game asks the profile (0x1659B0) whether an item is unlocked through eleven checkers, thiscall (profile, short id)
+returning a bool: the venues 0x162E30 (it also reads the game's venue cheat byte +0xC36, which FEA_VenueCheat sets),
+and ten item categories (IsFSItemUnlocked 0xB5720 switches over them: 0x162F10 0x162FB0 0x163050 0x1630F0 0x163190
+0x163230 0x163350 0x1633F0 0x163490 0x163530), each a bit of the profile's unlock words. src/game/unlock.cpp: with
+unlock_all on, each answers true after the original runs (its log names what was locked); nothing is written, so off
+the player's own progress is back. FN2_UNLOCK_ALL=1 for the harness.
+Headless, a first boot's profile: venues 0 1 2 5 7 8 10 were locked; Select Venue now steps on past the Staples Center
+to Boma Stadium, the Everlast Boxing Center, Training. Smoke OK.
+
 ### 2026-11-26 - PC settings from the game's menus: X PC SETUP on Options, X on the pause menu
 
 - Options (screensfe/options.apt): its button footer is set by its sprite's init script (0x21028: m_crossBtn =

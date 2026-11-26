@@ -57,11 +57,11 @@ PTR = {0xA1, 0xA4, 0xA5, 0xA6, 0xA7, 0x8C, 0x8B}
 U32 = {0x81, 0x94, 0xB4, 0xB7}
 BR = {0x99, 0x9D, 0xB8}
 
-def dis(d, consts, o, out, depth=0, pool=None):
+def dis(d, consts, o, out, depth=0, pool=None, end=None):
     pool = pool or []
     name = lambda i: (repr(consts[pool[i]]) if i < len(pool) and isinstance(consts[pool[i]], str) else f'#{i}')
     pad = '  ' * depth
-    while True:
+    while end is None or o < end:
         op = d[o]; at = o; o += 1; arg = ''
         if op in BYTE1: arg = name(d[o]) if op in (0xA2, 0xAE, 0xAF, 0xB0, 0xB1, 0xB2, 0xB3) else str(d[o]); o += 1
         elif op in BYTE2:
@@ -79,16 +79,16 @@ def dis(d, consts, o, out, depth=0, pool=None):
             o = A4(o); fn, na, ap, size = struct.unpack('<4I', d[o:o+16]); o += 24
             args = [S(d, U(d, ap + 4 * i)) for i in range(na)]
             out.append(f'{pad}{hex(at)} DefineFunction {S(d, fn)!r}({", ".join(args)}) size {size}')
-            dis(d, consts, o, out, depth + 1, pool); o += size; continue
+            dis(d, consts, o, out, depth + 1, pool, o + size); o += size; continue
         elif op == 0x8E:
             o = A4(o); fn, na = U(d, o), U(d, o + 4); regs, flags = d[o + 8], struct.unpack('<H', d[o + 9:o + 11])[0]
             ap, size = U(d, o + 12), U(d, o + 16); o += 28
             out.append(f'{pad}{hex(at)} DefineFunction2 {S(d, fn)!r} nargs {na} size {size}')
-            dis(d, consts, o, out, depth + 1, pool); o += size; continue
+            dis(d, consts, o, out, depth + 1, pool, o + size); o += size; continue
         elif op not in NAMES:
             out.append(f'{pad}{hex(at)} ?? {op:02x}  (stop)'); return
         out.append(f'{pad}{hex(at)} {NAMES.get(op, hex(op))} {arg}')
-        if op == 0 and depth >= 0: return
+        if op == 0 and end is None: return
 
 def blocks(d, root):
     # every action block reachable from the movie: frame actions and init actions of the movie and its sprites

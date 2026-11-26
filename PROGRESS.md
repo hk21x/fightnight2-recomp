@@ -19,6 +19,18 @@ Newest first. Each entry: date, what changed, what was learned, what's next.
 
 ## Log
 
+### 2026-11-26 - 3064a10 checked on GPU-VM (Intel Arc, real time)
+
+recomp-vm built 3064a10 clean into C:\Testing\fightnight2-test. On GPU-VM:
+- Title menu: QUIT with its strip; A: the game's popup "QUIT / UNSAVED PROGRESS WILL BE LOST. QUIT TO WINDOWS?" with
+  NO first; YES quit (Exit 0). B does nothing on it, as on every button popup in FN2 (custmLib m_stdPopup's handler
+  takes CANCEL only for its callback popups): left as the game has it.
+- Options: "X PC SETUP" in the footer (SELECT's first letter a little faded, the bar's dark left end); X: the settings
+  window opened, its pages Display, Graphics, Game, Achievements (new), General, Wheel, Controls, Quit.
+- A Play Now fight paused, X: the settings window (the pause menu is not drawn while it is up; the fight is).
+- Create Champ's pages: the tab markers LT and RT.
+tools/apt/aptdis.py: a function's body disassembled within its size (the old walk was exponential on custmLib).
+
 ### 2026-11-26 - HUD at the screen's edges: stopped (a third approach ruled out)
 
 Tried a third way: the fight's HUD as an APT movie (screensbe/hud.apt: each boxer's bars four placed sprites at x 187

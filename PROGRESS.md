@@ -19,6 +19,16 @@ Newest first. Each entry: date, what changed, what was learned, what's next.
 
 ## Log
 
+### 2026-11-26 - Harry's test of 3064a10; next: a PC Settings page in the game's own menus
+
+Harry on his PC: Unlock everything works; achievements work (the career record read right); smooth motion clean;
+Quit Game works; LT/RT markers work. X PC SETUP and X on the pause menu: he wants an in-game settings page (as the
+other ports), not the settings window.
+Plan: the game's Settings screen (screensfe/settings, rows of option objects, each its own init script: label $id,
+choices, focus order) opened in a PC mode: labels and choices through the string lookup ($ids), values substituted
+as FEA_LoadSettings (0xC60D0) adds them (0xDD0E0 names a key, 0xC6050 / 0x9E850 add a number / a bool), saving from
+FEA_SaveSettings' "name=value&..." string into the PC settings (the game's own left alone), entered by X.
+
 ### 2026-11-26 - 3064a10 checked on GPU-VM (Intel Arc, real time)
 
 recomp-vm built 3064a10 clean into C:\Testing\fightnight2-test. On GPU-VM:

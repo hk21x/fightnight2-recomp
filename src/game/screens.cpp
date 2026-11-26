@@ -10,6 +10,7 @@
 #include "xdk/hle.h"
 
 namespace fn2 {
+void PcPageScreen(const std::string& screen);  // pc_page.cpp
 namespace {
 std::mutex g_lock;
 std::string g_screen;
@@ -30,5 +31,6 @@ X86_FUNC(sub_0009A880) {
         fn2::g_screen = screen;
     }
     LOGR("fn2: screen %s", screen.c_str());
+    fn2::PcPageScreen(screen);
     __imp__sub_0009A880(ctx, base);
 }

@@ -19,6 +19,29 @@ Newest first. Each entry: date, what changed, what was learned, what's next.
 
 ## Log
 
+### 2026-11-26 - PC Settings: a page of the game's own menus (X on Options)
+
+X on Options now opens the game's Settings screen in a PC mode (src/game/pc_page.cpp), in its own style:
+- Entry: Options' key handler is now callGF2 (deprecated, never called; 224 bytes): X (INPUTCODE.CIRCLE; FN2 shows
+  circle as X, triangle B, square Y) calls callGF("FN2_PCMODE") then goSettings; other keys go to localEventHandler.
+- Labels and choices: settings.const keeps file offsets once loaded and is read at each use; in PC mode the rows'
+  label and choice items point (offset = target - base, wrapping) at strings of ours in guest memory (mem::AllocSystem),
+  shown as written in the row's font; back to the game's offsets when another screen comes up. Each on/off row has its
+  own $2/$1 items. Measured: FN2_CONST_TEST pointed $621 at "szSettings=" and the row read so.
+- Values: FEA_LoadSettings (0xC60D0) adds each by name: 0xDD0E0 makes an entry {builder, key, -1}, 0xC6050 / 0x9E850
+  add a number / bool (thiscall on the entry, a pointer to the value): ours in PC mode for our keys.
+- Saving: START calls FEA_SaveSettings (0xC58B0, cdecl), its argument a string by value (length at +0, text at +8):
+  22 comma-separated values in the screen's order. In PC mode they set the PC settings (app::Save, ApplyDisplay) and
+  the game's save is skipped (ret). B: the game's own "undo all changes?".
+- The rows: Display mode, Frame rate cap (30-unlimited), Edge smoothing, Vertical sync, Smooth motion, Aspect ratio,
+  Enhanced textures, Sharp text and HUD, Skip intro, Modern buttons, Render scale (100/150/200), the game's volumes
+  (theirs), Texture filtering, Unlock everything, Smooth alpha edges, HUD, Show FPS, Pause when not in front, MSAA
+  (off/2x/4x): each on a game row of the same shape (Difficulty, Number of rounds, Round length ...).
+- Headless: the page drawn with the PC values; Left and START: "PC Settings saved (0,1,0,1,1,0,...)", back to
+  Options, the screen the game's again. Smoke OK.
+Not yet: the title still reads SETTINGS; Y HELP shows the game's rows' help; the pause menu's X still opens the window
+(the fight has no APT screens loaded).
+
 ### 2026-11-26 - Harry's test of 3064a10; next: a PC Settings page in the game's own menus
 
 Harry on his PC: Unlock everything works; achievements work (the career record read right); smooth motion clean;

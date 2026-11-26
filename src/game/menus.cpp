@@ -10,7 +10,9 @@
 // GC test is made to take the GameCube's rows); goPlayOnline's online hardware test is made to pass, so its own
 // popup asks (the popup's title and question in mainmenu.const rewritten); its YES runs goOnline, whose first call is
 // callGF("FEA_InitEasoApt"), not in this release's function table: on the title menu that call quits the game.
+#include <atomic>
 #include <cstdint>
+#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <string>
@@ -25,6 +27,8 @@
 namespace fn2 {
 std::string Screen();                           // screens.cpp
 void AchievementsEvent(const std::string& name);  // achievements.cpp
+void PcPageEnter();                               // pc_page.cpp
+void PcPageLoaded();
 }
 
 namespace {
@@ -65,8 +69,26 @@ struct PatchV {
     uint32_t at;
     std::vector<uint8_t> was, now;
 };
+// X there opens PC Settings (pc_page.cpp): Options' key handler (setLocalEventHandler(localEventHandler) at 0x2082F) is
+// now callGF2, deprecated and never called, its 224 bytes from 0x2059C rewritten: if the key (its first argument,
+// strFunctionName) is INPUTCODE.CIRCLE (X), callGF("FN2_PCMODE") and goSettings(); else localEventHandler(key) as
+// before; both then branch to the body's end (the rest Pop, never reached). Three Trace-only constants of the block
+// are the new names: CIRCLE, FN2_PCMODE, callGF2.
+std::vector<uint8_t> Body(std::initializer_list<uint8_t> head, size_t size) {
+    std::vector<uint8_t> v(head);
+    v.resize(size, 0x17);
+    return v;
+}
 const PatchV kOptions[] = {
     {0x21048, {0xa2, 0x08, 0xa2, 0x01, 0x1d}, {0xa2, 0x08, 0xa2, 0x15, 0x1d}},
+    {0x2082f, {0xae, 0x53, 0x5a, 0xae, 0x54}, {0xae, 0x59, 0x5a, 0xae, 0x54}},
+    {0x2059c, {0xa2, 0x15, 0x26, 0xa2, 0x16, 0x26},
+     Body({0xae, 0x06, 0xae, 0x1f, 0xaf, 0x58, 0x49, 0x12, 0x9d, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00,  // key == CIRCLE?
+           0xa2, 0x16, 0x5a, 0xb0, 0x36, 0x59, 0xb0, 0x43,                                                // callGF, goSettings
+           0x99, 0x00, 0x00, 0x00, 0xc0, 0x00, 0x00, 0x00,                                                // to the end
+           0xae, 0x06, 0x5a, 0xb0, 0x53,                                                                  // localEventHandler
+           0x99, 0x00, 0x00, 0xb4, 0x00, 0x00, 0x00},
+          224)},
 };
 
 bool ApplyV(uint32_t file, const PatchV* patches, size_t n, const char* what) {
@@ -110,6 +132,7 @@ void ReplaceText(uint32_t file, uint32_t size, const char* from, const char* to)
     LOGR("fn2: \"%s\" not found to replace", from);
 }
 
+std::atomic<uint32_t> g_settings_const{0};  // the loaded settings.const
 void Edit(uint32_t big, uint32_t size) {
     if (size < 16 || kernel::R32(big) != 0x46474942) return;  // "BIGF"
     const uint32_t count = BE(big + 8);
@@ -125,6 +148,7 @@ void Edit(uint32_t big, uint32_t size) {
         if (name == "mainmenu.const") cst = big + off, cst_size = len;
         if (name == "options.apt") opt = big + off, opt_size = len;
         if (name == "options.const") opt_cst = big + off, opt_cst_size = len;
+        if (name == "settings.const") g_settings_const = big + off;
     }
     if (apt && apt_size == 205613 && cst) {
         if (Apply(apt, kTitleMenu, std::size(kTitleMenu), "the title menu")) {
@@ -134,14 +158,19 @@ void Edit(uint32_t big, uint32_t size) {
             LOGR("fn2: the title menu has Quit Game");
         }
     }
+    if (g_settings_const) fn2::PcPageLoaded();
     if (opt && opt_size == 135960 && opt_cst && ApplyV(opt, kOptions, std::size(kOptions), "Options")) {
         ReplaceText(opt_cst, opt_cst_size, "m_rightAnalogBtn", "B,40,PC SETUP");
+        ReplaceText(opt_cst, opt_cst_size, "XXXXXXXXXXXXX SETTINGS XXXXXXXXXXXXXXXX", "CIRCLE");
+        ReplaceText(opt_cst, opt_cst_size, "callGF2 is deprecated!!!!!!!", "FN2_PCMODE");
+        ReplaceText(opt_cst, opt_cst_size, "From GO Settings", "callGF2");
         LOGR("fn2: Options has X PC SETTINGS");
     }
 }
 }  // namespace
 
 namespace fn2 {
+uint32_t SettingsConst() { return g_settings_const; }
 bool InFight();  // ultrawide.cpp
 bool FightMenuShown();  // src/common/buttons.cpp
 // X on Options (its footer says PC SETUP) and on a fight's pause menu: the settings window, the press kept from the game
@@ -149,7 +178,7 @@ void PcSettingsKey(input::Pad& pad) {
     static bool was = false;
     const int x = input::kX - input::kA;
     const bool now = pad.analog[x] > 128;
-    const bool paused = FightMenuShown(), options = !paused && !InFight() && Screen() == "OPTIONS";
+    const bool paused = FightMenuShown(), options = false;  // Options: its own key handler (PC Settings, pc_page.cpp)
     if (now && !was && (options || paused) && !app::OverlayOpen()) {
         LOGR("fn2: PC SETTINGS (X on %s)", options ? "Options" : "the pause menu");
         app::ToggleOverlay();
@@ -174,6 +203,7 @@ X86_FUNC(sub_00260D54) {
         const uint32_t key = kernel::R32(ctx.esp + 4);
         const std::string name = kernel::ReadCString(kernel::R32(key), 64);
         fn2::AchievementsEvent(name);
+        if (name == "FN2_PCMODE") fn2::PcPageEnter();
         if (name == "FEA_InitEasoApt" && fn2::Screen() == "MAINMENU") {
             LOGR("fn2: Quit Game (the title menu)");
             app::Quit();

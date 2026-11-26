@@ -173,6 +173,7 @@ namespace fn2 {
 uint32_t SettingsConst() { return g_settings_const; }
 bool InFight();  // ultrawide.cpp
 bool FightMenuShown();  // src/common/buttons.cpp
+bool PcPageShown();     // pc_page.cpp
 // X on Options (its footer says PC SETUP) and on a fight's pause menu: the settings window, the press kept from the game
 void PcSettingsKey(input::Pad& pad) {
     static bool was = false;
@@ -185,6 +186,8 @@ void PcSettingsKey(input::Pad& pad) {
     }
     was = now;
     if (options || paused) pad.analog[x] = 0;
+    if (PcPageShown()) pad.analog[input::kY - input::kA] = 0;  // the rows' help is the game's rows'
+
 }
 }  // namespace fn2
 

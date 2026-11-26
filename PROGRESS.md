@@ -39,7 +39,8 @@ X on Options now opens the game's Settings screen in a PC mode (src/game/pc_page
   (off/2x/4x): each on a game row of the same shape (Difficulty, Number of rounds, Round length ...).
 - Headless: the page drawn with the PC values; Left and START: "PC Settings saved (0,1,0,1,1,0,...)", back to
   Options, the screen the game's again. Smoke OK.
-Not yet: the title still reads SETTINGS; Y HELP shows the game's rows' help; the pause menu's X still opens the window
+Y on the page is kept from the game (its help is for the rows lent). Not yet: the title still reads SETTINGS (the
+header is the shell's, gScreenTitle, the word not in the Settings movie); the pause menu's X still opens the window
 (the fight has no APT screens loaded).
 
 ### 2026-11-26 - Harry's test of 3064a10; next: a PC Settings page in the game's own menus

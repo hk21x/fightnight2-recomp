@@ -166,6 +166,12 @@ void Substitute(X86Context& ctx) {
 }
 }  // namespace
 
+// the PC page is up: its Y (the game's help for the rows it lends) is kept from the game
+bool PcPageShown() {
+    std::lock_guard<std::mutex> hold(g_lock);
+    return g_mode;
+}
+
 // callGF("FN2_PCMODE"), X on Options, just before its goSettings
 void PcPageEnter() {
     std::lock_guard<std::mutex> hold(g_lock);

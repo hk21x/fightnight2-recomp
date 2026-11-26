@@ -19,6 +19,19 @@ Newest first. Each entry: date, what changed, what was learned, what's next.
 
 ## Log
 
+### 2026-11-26 - HUD at the screen's edges: stopped (a third approach ruled out)
+
+Tried a third way: the fight's HUD as an APT movie (screensbe/hud.apt: each boxer's bars four placed sprites at x 187
+and 648.8 of 854) moved out by patching its placements as it loads. Ruled out: no in-fight APT movie is ever loaded in
+a fight (FN2_APT_LOG=1, a headless Play Now fight: the front end's and the button icons' files only; no hud, mainBE,
+judgescores). The bottom boxes are the game's own 2D models (EAGL's drawer 0x98270 > 0x217F80, the 2D camera
+0x362028), squeezed to 16:9 by the renderers (squeeze_screen_programs).
+The two earlier tries (2026-11-22): State::hud_layout (skips depth-tested draws, and FN2's HUD is depth tested) and
+moving shapes in 0x125280 (the HUD is not drawn there). What would work: an SDK change, HudPiece accepting FN2's
+depth-tested pieces and HudMove moving outward in squeezed space ((aspect / layout - 1) x the half width, not inward),
+set around the HUD's draw. That is a renderer change for every game (all-games gate). For Harry.
+FN2_APT_LOG=1 kept: each APT file as it loads.
+
 ### 2026-11-26 - Achievements: Career milestones and three events
 
 Ten achievements (src/common/game_info.cpp, awarded by src/game/achievements.cpp): first pro win, first KO, 10 wins,

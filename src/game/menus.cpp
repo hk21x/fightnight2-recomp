@@ -11,6 +11,7 @@
 // popup asks (the popup's title and question in mainmenu.const rewritten); its YES runs goOnline, whose first call is
 // callGF("FEA_InitEasoApt"), not in this release's function table: on the title menu that call quits the game.
 #include <cstdint>
+#include <cstdlib>
 #include <cstring>
 #include <string>
 #include <vector>
@@ -118,6 +119,8 @@ void Edit(uint32_t big, uint32_t size) {
         const uint32_t off = BE(e), len = BE(e + 4);
         const std::string name = kernel::ReadCString(e + 8, 64);
         e += 8 + uint32_t(name.size()) + 1;
+        static const bool log = std::getenv("FN2_APT_LOG") != nullptr;  // every APT file as it loads (a test)
+        if (log) LOGR("fn2: APT file %s, %u bytes", name.c_str(), len);
         if (name == "mainmenu.apt") apt = big + off, apt_size = len;
         if (name == "mainmenu.const") cst = big + off, cst_size = len;
         if (name == "options.apt") opt = big + off, opt_size = len;

@@ -19,6 +19,15 @@ Newest first. Each entry: date, what changed, what was learned, what's next.
 
 ## Log
 
+### 2026-11-26 - PC Settings page: crash after backing out fixed
+
+Harry: PC Settings, B, then B again (on Options): the game crashed. Headless the same: popup YES, B on Options, segfault.
+Cause: leaving the page wrote the game's const offsets back into settings.const, but the screen's files are unpacked
+afresh each visit and freed when it goes (FN2_APT_LOG: settings.const unpacked just after "PC Settings opened";
+Options unpacked again before its FeInitScreen), so the write-back went into freed heap. Now only the copy just
+unpacked is edited (PcPageLoaded(file) from the unpack hook) and nothing is written back: the next visit's copy is the
+game's own. Headless: NO, then YES, B, B to the main menu, no crash; a second visit shows the PC rows again. Smoke OK.
+
 ### 2026-11-26 - PC Settings: a page of the game's own menus (X on Options)
 
 X on Options now opens the game's Settings screen in a PC mode (src/game/pc_page.cpp), in its own style:

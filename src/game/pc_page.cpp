@@ -5,7 +5,9 @@
 // ("$621", a string id) and its choices ("4 $622" ... ; the on/off rows each have their own "$2" OFF and "$1" ON). The
 // const table keeps file offsets once loaded, read at each use: an item pointed (offset = target - the file's base) at
 // a string of ours is shown as written, in the row's own font. In PC mode the rows' labels and choices are pointed at
-// ours; out of it, back at the game's.
+// ours. The screen's files are unpacked afresh each time it comes up and freed when it goes (Options is unpacked again
+// before its FeInitScreen), so only the copy just unpacked is edited and nothing is written back on leaving: the next
+// visit's copy is the game's own. (Writing back into the freed copy corrupted the heap: B on Options then crashed.)
 //
 // Values: the screen's initGUI calls FEA_LoadSettings (0xC60D0), which adds each value to its reply by name: 0xDD0E0
 // names the key (the entry's +4), 0xC6050 adds a number and 0x9E850 a bool, thiscall on that entry with a pointer to the
@@ -30,7 +32,6 @@
 
 namespace fn2 {
 extern bool smooth_motion, skip_intro, modern_buttons, unlock_all, hide_hud;
-uint32_t SettingsConst();  // menus.cpp: the loaded settings.const, 0 before the screen's first use
 
 namespace {
 enum Kind { kBool, kList };
@@ -111,8 +112,6 @@ const std::vector<Row>& Rows() {
 
 std::mutex g_lock;
 bool g_mode = false;          // the screen is ours
-uint32_t g_pointed = 0;       // the const file our items point into, 0 when the game's
-std::vector<std::pair<uint32_t, uint32_t>> g_saved;  // item address, the game's offset
 bool g_loading = false;       // inside FEA_LoadSettings
 
 uint32_t Text(const char* s) {  // a string of ours in guest memory, kept for the game's life
@@ -125,27 +124,16 @@ uint32_t Text(const char* s) {  // a string of ours in guest memory, kept for th
 void Point(uint32_t file, uint32_t item, const char* text) {
     const uint32_t at = file + 0x20 + item * 8;
     if (kernel::R32(at) != 1) return;  // not a string item
-    g_saved.emplace_back(at + 4, kernel::R32(at + 4));
     kernel::W32(at + 4, Text(text) - file);
 }
 
-// the rows' labels and choices ours (once the screen's file is loaded)
-void PointAll() {
-    const uint32_t file = SettingsConst();
-    if (!file || g_pointed == file) return;
-    g_saved.clear();
+// the rows' labels and choices ours, in the copy of settings.const just unpacked
+void PointAll(uint32_t file) {
     for (const Row& r : Rows()) {
         Point(file, r.label_item, r.label);
         for (size_t i = 0; i < r.choice_items.size() && i < r.choices.size(); i++) Point(file, r.choice_items[i], r.choices[i]);
     }
-    g_pointed = file;
     LOGR("fn2: PC Settings: the Settings screen's rows show the PC settings");
-}
-
-void Restore() {
-    for (auto [at, offset] : g_saved) kernel::W32(at, offset);
-    g_saved.clear();
-    g_pointed = 0;
 }
 
 const Row* RowOf(const std::string& key) {
@@ -175,23 +163,21 @@ bool PcPageShown() {
 // callGF("FN2_PCMODE"), X on Options, just before its goSettings
 void PcPageEnter() {
     std::lock_guard<std::mutex> hold(g_lock);
-    g_mode = true;
-    PointAll();
+    g_mode = true;  // the screen's files are unpacked next
     LOGR("fn2: PC Settings opened");
 }
 
-// the screen's file just loaded (menus.cpp): ours if the screen is
-void PcPageLoaded() {
+// settings.const just unpacked (menus.cpp): ours if the screen is
+void PcPageLoaded(uint32_t file) {
     std::lock_guard<std::mutex> hold(g_lock);
-    if (g_mode) PointAll();
+    if (g_mode) PointAll(file);
 }
 
 // each screen as it comes up (screens.cpp): leaving Settings leaves PC mode
 void PcPageScreen(const std::string& screen) {
     std::lock_guard<std::mutex> hold(g_lock);
     if (!g_mode || screen == "SETTINGS") return;
-    g_mode = false;
-    Restore();
+    g_mode = false;  // the copy we edited is freed with the screen
     LOGR("fn2: PC Settings closed, the Settings screen the game's again");
 }
 }  // namespace fn2

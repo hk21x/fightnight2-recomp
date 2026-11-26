@@ -28,7 +28,7 @@ namespace fn2 {
 std::string Screen();                           // screens.cpp
 void AchievementsEvent(const std::string& name);  // achievements.cpp
 void PcPageEnter();                               // pc_page.cpp
-void PcPageLoaded();
+void PcPageLoaded(uint32_t settings_const);
 }
 
 namespace {
@@ -132,12 +132,11 @@ void ReplaceText(uint32_t file, uint32_t size, const char* from, const char* to)
     LOGR("fn2: \"%s\" not found to replace", from);
 }
 
-std::atomic<uint32_t> g_settings_const{0};  // the loaded settings.const
 void Edit(uint32_t big, uint32_t size) {
     if (size < 16 || kernel::R32(big) != 0x46474942) return;  // "BIGF"
     const uint32_t count = BE(big + 8);
     uint32_t e = big + 16;
-    uint32_t apt = 0, apt_size = 0, cst = 0, cst_size = 0, opt = 0, opt_size = 0, opt_cst = 0, opt_cst_size = 0;
+    uint32_t settings = 0, apt = 0, apt_size = 0, cst = 0, cst_size = 0, opt = 0, opt_size = 0, opt_cst = 0, opt_cst_size = 0;
     for (uint32_t i = 0; i < count && i < 64; i++) {
         const uint32_t off = BE(e), len = BE(e + 4);
         const std::string name = kernel::ReadCString(e + 8, 64);
@@ -148,7 +147,7 @@ void Edit(uint32_t big, uint32_t size) {
         if (name == "mainmenu.const") cst = big + off, cst_size = len;
         if (name == "options.apt") opt = big + off, opt_size = len;
         if (name == "options.const") opt_cst = big + off, opt_cst_size = len;
-        if (name == "settings.const") g_settings_const = big + off;
+        if (name == "settings.const") settings = big + off;
     }
     if (apt && apt_size == 205613 && cst) {
         if (Apply(apt, kTitleMenu, std::size(kTitleMenu), "the title menu")) {
@@ -158,7 +157,7 @@ void Edit(uint32_t big, uint32_t size) {
             LOGR("fn2: the title menu has Quit Game");
         }
     }
-    if (g_settings_const) fn2::PcPageLoaded();
+    if (settings) fn2::PcPageLoaded(settings);
     if (opt && opt_size == 135960 && opt_cst && ApplyV(opt, kOptions, std::size(kOptions), "Options")) {
         ReplaceText(opt_cst, opt_cst_size, "m_rightAnalogBtn", "B,40,PC SETUP");
         ReplaceText(opt_cst, opt_cst_size, "XXXXXXXXXXXXX SETTINGS XXXXXXXXXXXXXXXX", "CIRCLE");
@@ -170,7 +169,6 @@ void Edit(uint32_t big, uint32_t size) {
 }  // namespace
 
 namespace fn2 {
-uint32_t SettingsConst() { return g_settings_const; }
 bool InFight();  // ultrawide.cpp
 bool FightMenuShown();  // src/common/buttons.cpp
 bool PcPageShown();     // pc_page.cpp

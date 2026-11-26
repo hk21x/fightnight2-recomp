@@ -14,16 +14,23 @@ Newest first. Each entry: date, what changed, what was learned, what's next.
 - Windows: 8303063 on GPU-VM (Arc, 1920x800, fps_cap 240): 40 minutes of every mode, smooth motion 170-210 fps in play;
   no sound there (no audio device). `\\192.168.1.229\Testing\fightnight2-test-8303063` ready for Harry
 - PAL 50 Hz: vblank_hz = 50, game time at real speed
-- Open: skin flicker with smooth motion on Harry's AMD card: fixed (c3c33bb, Harry 2026-11-25: bodies pose at the steps); achievements (stopped), LT/RT tab markers still the old pad's L and R, video memory kept after textures are
+- Open: skin flicker with smooth motion on Harry's AMD card: fixed (c3c33bb, Harry 2026-11-25: bodies pose at the steps); achievements (stopped), video memory kept after textures are
   freed (1.07 GB after 40 min), the gym drills' instruction popups held at 16:9
 
 ## Log
+
+### 2026-11-26 - Tab markers drawn as LT and RT
+
+src/common/buttons.cpp: the tab markers' letters (L FD81B39ECEB45181, R 66CCAAF6CAAB897F, 32x32 DXT3, seen bound on
+GPU-VM's Create Champ pages with FN2_PICS_LOG=1) are drawn as today's pad has them, "LT" and "RT" in white over the
+game's own black badge; while the keyboard plays, the key bound to LT or RT (SHIFT by default for LT). Headless
+FN2_BUTTONS_DUMP: both looks drawn. Smoke OK. Not yet seen on screen on Windows.
 
 ### 2026-11-25 - Tab markers (LT/RT): where they are, not yet drawn
 
 The old pad's trigger markers are two DXT3 32x32 textures bound together: a grey rounded rectangle (FNV-1a of level 0
 CBB599BB6A516449) and a white letter, L FD81B39ECEB45181 (seen bound on the title menu and My Corner, FN2_PICS_LOG=1);
-the R not yet seen. Screens with them (L1_button / R1_button in their .const): Create Champ's build, hair, head,
+the R 66CCAAF6CAAB897F (GPU-VM, Create Champ's pages, 2026-11-26). Screens with them (L1_button / R1_button in their .const): Create Champ's build, hair, head,
 physique, accessories and ratings pages, Career's fight store and fight preps. The disc's bytes do not give the hashes
 (not even the A disc's is found in FE\ART, the APT .xsh, PRELOAD: the textures are converted as they load), so the R
 needs one bind seen in game. Headless, Create Champ goes through Profile Manager (NEW/LOAD) and the name entry; too

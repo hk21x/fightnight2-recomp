@@ -250,7 +250,7 @@ uint16_t KeyOf(const Look& l, int control, bool fight = false) {
 
 // ---- the textures
 
-enum class Kind { kA, kB, kX, kY, kStart, kSmallPad, kControls };
+enum class Kind { kA, kB, kX, kY, kStart, kSmallPad, kControls, kLT, kRT };
 struct Known {
     uint64_t hash;
     uint32_t width, height;
@@ -268,7 +268,22 @@ constexpr Known kKnown[] = {
     {0xA74476B7D34E7289ull, 32, 32, Kind::kStart, "start"},
     {0x9C49F2EC10204142ull, 128, 64, Kind::kSmallPad, "pad_small"},
     {0x76102222C41AB526ull, 128, 128, Kind::kControls, "pad_controls"},
+    // the tab markers (Create Champ's pages, Career's store and preps): the old pad's trigger letters, white, over a black
+    // badge of their own (CBB599BB6A516449, kept); the letter about 9 texels tall in the middle of 32x32
+    {0xFD81B39ECEB45181ull, 32, 32, Kind::kLT, "tab_l"},
+    {0x66CCAAF6CAAB897Full, 32, 32, Kind::kRT, "tab_r"},
 };
+
+// a tab marker: LT or RT, white, as wide as the old letter and a little more; the keyboard's key in its place
+void TabMarker(Canvas& c, Kind kind, const Look& look) {
+    constexpr float kCx = 16, kCy = 16;
+    if (look.keys) {
+        KeyAt(c, kCx, kCy, 11, KeyOf(look, kind == Kind::kLT ? input::kLT : input::kRT));
+        return;
+    }
+    const char* text = kind == Kind::kLT ? "LT" : "RT";
+    Text(c, text, kCx, kCy, 7.5f, 1.2f, kWhite);
+}
 
 // a prompt's disc: as today's pad has it, or the key (the menus' key for A and B)
 void Prompt(Canvas& c, Kind kind, const Look& look) {
@@ -430,6 +445,8 @@ std::vector<uint32_t> Draw(Kind kind, const Look& look, uint32_t width, uint32_t
             if (look.keys) ControlsKeys(c, look);
             else ControlsPad(c);
             break;
+        case Kind::kLT:
+        case Kind::kRT: TabMarker(c, kind, look); break;
         default: Prompt(c, kind, look); break;
     }
     // width x height from the square canvas's top left

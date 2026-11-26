@@ -22,7 +22,8 @@
 #include "xdk/hle.h"
 
 namespace fn2 {
-std::string Screen();  // screens.cpp
+std::string Screen();                           // screens.cpp
+void AchievementsEvent(const std::string& name);  // achievements.cpp
 }
 
 namespace {
@@ -169,6 +170,7 @@ X86_FUNC(sub_00260D54) {
     if (kernel::R32(ctx.esp + 8) == 0x38F3C8) {
         const uint32_t key = kernel::R32(ctx.esp + 4);
         const std::string name = kernel::ReadCString(kernel::R32(key), 64);
+        fn2::AchievementsEvent(name);
         if (name == "FEA_InitEasoApt" && fn2::Screen() == "MAINMENU") {
             LOGR("fn2: Quit Game (the title menu)");
             app::Quit();

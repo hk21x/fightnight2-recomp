@@ -14,10 +14,24 @@ Newest first. Each entry: date, what changed, what was learned, what's next.
 - Windows: 8303063 on GPU-VM (Arc, 1920x800, fps_cap 240): 40 minutes of every mode, smooth motion 170-210 fps in play;
   no sound there (no audio device). `\\192.168.1.229\Testing\fightnight2-test-8303063` ready for Harry
 - PAL 50 Hz: vblank_hz = 50, game time at real speed
-- Open: skin flicker with smooth motion on Harry's AMD card: fixed (c3c33bb, Harry 2026-11-25: bodies pose at the steps); achievements (stopped), video memory kept after textures are
+- Open: skin flicker with smooth motion on Harry's AMD card: fixed (c3c33bb, Harry 2026-11-25: bodies pose at the steps); video memory kept after textures are
   freed (1.07 GB after 40 min), the gym drills' instruction popups held at 16:9
 
 ## Log
+
+### 2026-11-26 - Achievements: Career milestones and three events
+
+Ten achievements (src/common/game_info.cpp, awarded by src/game/achievements.cpp): first pro win, first KO, 10 wins,
+10 KOs, 10-0, a title belt, three belts at once (the Career record, read twice a second), a champ created, a fight store
+purchase, a career ended (the game functions the menus call by name: menus.cpp's function table lookup).
+Found this time from the menus' side: FEA_CareerBoxer_GetSummary (0xAA780) reads the career boxer: profile 0x37FFD0,
+career + 0xD68 + slot (short +0xCBC) * 0x38EC, the boxer at the career's +0x38D8; its pro record at boxer + 0x360 +
+(byte +0x29 * 0x32 + short +0x46) * 0x2C: wins +5, losses +6, draws +7, KOs +8; belts bytes +0x1A..+0x1F (1 held, 2
+once); turned pro byte +5. As 50 Cent's: a count awards only after being seen short of it (a save that has it awards
+nothing; another career starts from what it has).
+Not yet seen with a real career: headless has none (the log line "career boxer ..." shows the record once one is
+loaded; "career record ..." each change). The in-fight result (Play Now wins) still unknown: the fight's screens get
+their numbers pushed, not by name. Smoke OK.
 
 ### 2026-11-26 - Unlock everything (setting unlock_all, the Game page)
 

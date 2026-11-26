@@ -15,6 +15,7 @@
 // FN2_BUTTONS_DUMP=dir writes each picture as drawn, four times larger, as dir/<name>_<look>.pam (the reference
 // renderer does not draw replacements).
 #include <algorithm>
+#include <chrono>
 #include <array>
 #include <cstdint>
 #include <cstdio>
@@ -489,6 +490,7 @@ struct Texture {
     std::vector<Drawing> cache;  // the newest last, a few
 };
 std::map<uint32_t, Texture> g_textures;  // by the texels' address
+std::chrono::steady_clock::time_point g_fight_menu;  // the fight menus' A disc last bound
 // textures of our formats and sizes found not to be ours, by address: their first bytes' hash then (hashed whole again
 // only once those change; the fight binds dozens of 128x128 DXT3 textures each frame)
 std::map<uint32_t, uint64_t> g_rejected;
@@ -590,9 +592,17 @@ bool ButtonPictures(uint32_t header, uint32_t palette) {
         t.head = head;
         it = g_textures.emplace(d.data, std::move(t)).first;
     }
+    // the fight's menus (pause, throw in the towel) bind their own A disc every frame they are up
+    if (it->second.known && it->second.known->hash == 0x0249657C4873E4CDull) g_fight_menu = std::chrono::steady_clock::now();
     if (look == it->second.drawn) return false;
     Apply(it->second, look);
     return true;
+}
+
+// a fight's menu (pause, throw in the towel) drawn in the last 200 ms
+bool FightMenuShown() {
+    std::lock_guard<std::mutex> hold(g_lock);
+    return std::chrono::steady_clock::now() - g_fight_menu < std::chrono::milliseconds(200);
 }
 
 }  // namespace fn2

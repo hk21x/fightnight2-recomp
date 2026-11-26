@@ -19,6 +19,20 @@ Newest first. Each entry: date, what changed, what was learned, what's next.
 
 ## Log
 
+### 2026-11-26 - PC settings from the game's menus: X PC SETUP on Options, X on the pause menu
+
+- Options (screensfe/options.apt): its button footer is set by its sprite's init script (0x21028: m_crossBtn =
+  "B,10,$19" ...; FN2 shows the PS2 names circle as X, triangle B, square Y). m_circleBtn was ''; now the constant
+  m_rightAnalogBtn rewritten to "B,40,PC SETUP": the footer reads "A SELECT B BACK Y HELP X PC SETUP" in the game's
+  own style, today's X disc (buttons.cpp). "PC SETTINGS" pushed SELECT's first two letters into the bar's dark left end.
+  A sixth menu row was tried first: shown, but Options' menu (custmLib m_mnMenu) has no sixth row to move to.
+- The pause menu is native (sub_F6500 builds it widget by widget; its strings 3612-3616, 6003-6005 in xloc_gm), no row
+  added: X while a fight's menu is up (its A disc, a_fight, bound in the last 200 ms; InFight() flips while paused)
+  opens the settings window too. No hint on it yet.
+- X there: src/game/menus.cpp PcSettingsKey (the pad hook, test_pad.cpp), the press kept from the game.
+- Headless: the footer drawn; X (FN2_PAD_FILE) on Options and on the pause menu: "PC SETTINGS (X on ...)". Smoke OK.
+Next: Windows check (the settings window from a pad), then unlock all, achievements, HUD at the edges.
+
 ### 2026-11-26 - Tab markers drawn as LT and RT
 
 src/common/buttons.cpp: the tab markers' letters (L FD81B39ECEB45181, R 66CCAAF6CAAB897F, 32x32 DXT3, seen bound on

@@ -13,8 +13,10 @@
 #include <cstdint>
 #include <cstring>
 #include <string>
+#include <vector>
 
 #include "app/app.h"
+#include "core/input.h"
 #include "core/log.h"
 #include "kernel/kernel.h"
 #include "xdk/hle.h"
@@ -52,6 +54,31 @@ const Patch kTitleMenu[] = {
     {0x315e5, {0x9d, 0x00, 0x00, 0x20, 0x00, 0x00, 0x00}, {0x17, 0x99, 0x00, 0x00, 0x00, 0x00, 0x00}},
 };
 
+// Options (screensfe/options.apt, file size 135960): "X PC SETTINGS" in its button footer. The footer's buttons are set
+// by its sprite's init script (0x21028: m_crossBtn = "B,10,$19", ...); m_circleBtn (the X button: FN2 shows the PS2
+// names' circle as X, triangle as B, square as Y) was ''. Its value is now the constant m_rightAnalogBtn, rewritten to
+// the spec "B,40,PC SETTINGS" (the same length; the right stick's button stays unset). The press is ours (PcSettingsKey).
+// A sixth menu row was tried first: shown, but Options' menu has no sixth row to move to.
+struct PatchV {
+    uint32_t at;
+    std::vector<uint8_t> was, now;
+};
+const PatchV kOptions[] = {
+    {0x21048, {0xa2, 0x08, 0xa2, 0x01, 0x1d}, {0xa2, 0x08, 0xa2, 0x15, 0x1d}},
+};
+
+bool ApplyV(uint32_t file, const PatchV* patches, size_t n, const char* what) {
+    for (size_t i = 0; i < n; i++)
+        for (size_t k = 0; k < patches[i].was.size(); k++)
+            if (kernel::G<uint8_t>(file + patches[i].at + uint32_t(k)) != patches[i].was[k]) {
+                LOGR("fn2: %s not patched: the bytes at %X are not as expected", what, patches[i].at);
+                return false;
+            }
+    for (size_t i = 0; i < n; i++)
+        for (size_t k = 0; k < patches[i].now.size(); k++) kernel::G<uint8_t>(file + patches[i].at + uint32_t(k)) = patches[i].now[k];
+    return true;
+}
+
 bool Apply(uint32_t file, const Patch* patches, size_t n, const char* what) {
     for (size_t i = 0; i < n; i++) {
         size_t k = 0;
@@ -85,13 +112,15 @@ void Edit(uint32_t big, uint32_t size) {
     if (size < 16 || kernel::R32(big) != 0x46474942) return;  // "BIGF"
     const uint32_t count = BE(big + 8);
     uint32_t e = big + 16;
-    uint32_t apt = 0, apt_size = 0, cst = 0, cst_size = 0;
+    uint32_t apt = 0, apt_size = 0, cst = 0, cst_size = 0, opt = 0, opt_size = 0, opt_cst = 0, opt_cst_size = 0;
     for (uint32_t i = 0; i < count && i < 64; i++) {
         const uint32_t off = BE(e), len = BE(e + 4);
         const std::string name = kernel::ReadCString(e + 8, 64);
         e += 8 + uint32_t(name.size()) + 1;
         if (name == "mainmenu.apt") apt = big + off, apt_size = len;
         if (name == "mainmenu.const") cst = big + off, cst_size = len;
+        if (name == "options.apt") opt = big + off, opt_size = len;
+        if (name == "options.const") opt_cst = big + off, opt_cst_size = len;
     }
     if (apt && apt_size == 205613 && cst) {
         if (Apply(apt, kTitleMenu, std::size(kTitleMenu), "the title menu")) {
@@ -101,8 +130,30 @@ void Edit(uint32_t big, uint32_t size) {
             LOGR("fn2: the title menu has Quit Game");
         }
     }
+    if (opt && opt_size == 135960 && opt_cst && ApplyV(opt, kOptions, std::size(kOptions), "Options")) {
+        ReplaceText(opt_cst, opt_cst_size, "m_rightAnalogBtn", "B,40,PC SETUP");
+        LOGR("fn2: Options has X PC SETTINGS");
+    }
 }
 }  // namespace
+
+namespace fn2 {
+bool InFight();  // ultrawide.cpp
+bool FightMenuShown();  // src/common/buttons.cpp
+// X on Options (its footer says PC SETUP) and on a fight's pause menu: the settings window, the press kept from the game
+void PcSettingsKey(input::Pad& pad) {
+    static bool was = false;
+    const int x = input::kX - input::kA;
+    const bool now = pad.analog[x] > 128;
+    const bool paused = FightMenuShown(), options = !paused && !InFight() && Screen() == "OPTIONS";
+    if (now && !was && (options || paused) && !app::OverlayOpen()) {
+        LOGR("fn2: PC SETTINGS (X on %s)", options ? "Options" : "the pause menu");
+        app::ToggleOverlay();
+    }
+    was = now;
+    if (options || paused) pad.analog[x] = 0;
+}
+}  // namespace fn2
 
 // RefPack: (source, destination), the size out
 X86_EXTERN_FUNC(__imp__sub_002301D0);

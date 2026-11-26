@@ -19,10 +19,23 @@ namespace fn2 {
 extern bool hide_hud;  // hud.cpp
 void MenuMouse(input::Pad& pad);  // menu_mouse.cpp
 
+void PcSettingsKey(input::Pad& pad);  // src/game/menus.cpp
+
+namespace {
+void FilePad(input::Pad& pad);
+}
+
 void TestPad(int port, input::Pad& pad) {
-    if (port == 0) MenuMouse(pad);
+    if (port != 0) return;
+    MenuMouse(pad);
+    FilePad(pad);
+    PcSettingsKey(pad);
+}
+
+namespace {
+void FilePad(input::Pad& pad) {
     static const char* path = std::getenv("FN2_PAD_FILE");
-    if (!path || !*path || port != 0) return;
+    if (!path || !*path) return;
     static int every = 0;
     static uint16_t buttons = 0;
     static uint8_t analog[8] = {};
@@ -91,5 +104,6 @@ void TestPad(int port, input::Pad& pad) {
     if (rx) pad.rx = rx;
     if (ry) pad.ry = ry;
 }
+}  // namespace
 
 }  // namespace fn2

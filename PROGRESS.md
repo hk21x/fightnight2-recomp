@@ -26,7 +26,11 @@ fightnight2-menus.webp; Select Boxer kept), fightnight2-pc-in-game.webp (X on Op
 menu's PC SETTINGS panel); text for the in-game PC settings, the widen into a fight, Unlock everything, Quit Game and an
 Achievements section (10, 315 points); the tab markers' known issue and the roadmap's achievements gone.
 docs/releases/v1.0.md the same. Smoke OK. The old tag v1.0 (d74d861) deleted from GitHub and v1.0 tagged at main; the
-workflow makes the draft with the launcher. Next: recomp-vm builds the package from a clean clone of the tag.
+workflow makes the draft with the launcher. The package: recomp-vm, a fresh clone at v1.0 (3bce0e4, sdk f54de77), CI=1
+build.bat and release-package.bat with LLVM 22.1.3: FightNight2-package.zip 73,526,879 bytes, sha256
+6140c5ba5321c35469b86de134bb3edc6ee11e60f40d46d13408d2d5fe0e1628, its .json matching; 28 files, no game code or
+assets; in C:\Testing\fightnight2-release-v1.0 (the first package kept in -v1.0-old), the clone deleted. Next: Harry
+attaches both to the draft, publishes.
 
 ### 2026-11-27 - Ultrawide: no pop at the change of shape (a frame's shape carried by its draws)
 Harry: still a pop as the widescreen opens. Cause: the renderers reshaped their targets and cropped the shown frame by

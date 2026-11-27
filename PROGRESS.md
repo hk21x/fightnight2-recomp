@@ -9,7 +9,7 @@ Newest first. Each entry: date, what changed, what was learned, what's next.
 - Push buffers: none recorded (no RunPushBuffer/CreatePushBuffer, Ghidra scan); EAGL's BeginPush/EndPush at 9 sites,
   decoded by the runtime
 - Smoke: `scripts/smoke.sh` (scripts/pad/fight.txt) SMOKE OK
-- GitHub: hk21x/fightnight2-recomp (private), main pushed; SDK on fork branch fn2-hold-aspect 361b102 (fork main
+- GitHub: hk21x/fightnight2-recomp (private), main pushed; SDK on fork branch fn2-hold-aspect f54de77 (fork main
   5af29c1 + FN2's runtime changes), to gate before fork main
 - Windows: 8303063 on GPU-VM (Arc, 1920x800, fps_cap 240): 40 minutes of every mode, smooth motion 170-210 fps in play;
   no sound there (no audio device). `\\192.168.1.229\Testing\fightnight2-test-8303063` ready for Harry
@@ -18,6 +18,22 @@ Newest first. Each entry: date, what changed, what was learned, what's next.
   freed (1.07 GB after 40 min), the gym drills' instruction popups held at 16:9
 
 ## Log
+
+### 2026-11-27 - Ultrawide: no pop at the change of shape (a frame's shape carried by its draws)
+Harry: still a pop as the widescreen opens. Cause: the renderers reshaped their targets and cropped the shown frame by
+the shape decided *now*, while what they drew and showed was a frame behind (the render thread) or a step behind
+(in-between frames, smooth motion on, as Harry plays): around each change a frame or more was cropped or reshaped for
+the wrong shape (a 16:9 frame cropped as 2.39:1, zoomed; or the last 16:9 draws stretched into 2.39:1 targets), and
+smooth motion blended a 16:9 step into a 2.39:1 one. A shape decided mid-frame also split a frame between the two.
+- sdk fn2-frame-shape f54de77 (fast-forwarded into fn2-hold-aspect), only with GameInfo::widen_ms:
+  app::LatchFrameAspect takes the shape at the title's present, FrameAspect gives it until the next; every draw
+  carries it (gpu::State::frame_aspect); D3D11 and D3D12 reshape their targets at the first draw of a new shape and
+  crop the shown frame by the targets' own; in-between frames blend nothing across a change (that step shown as drawn).
+- Headless SMOKE OK. GPU-VM (5e1f0be from recomp-vm; D3D11, smooth motion, fps_cap 240, aspect screen, XBE_INTERP_MARK,
+  400 grabs at 21 ms into a Play Now fight): the steps at the change shown as drawn (red marks), the scene's scale
+  steady frame to frame while the sides open out over about 0.6 s; the fight draws as before. The burst task now runs
+  through C:\fn2ctl\burst.vbs (hidden): its console covered most of the screen in grabs.
+- Next: Harry's test. Narrowing (a fight back to the menus) is still at once, at a scene change.
 
 ### 2026-11-27 - Ultrawide: no snap from the menus' 16:9 into a fight; D3D11 gets the blurred sides
 

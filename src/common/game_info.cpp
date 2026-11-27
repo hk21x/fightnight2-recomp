@@ -172,6 +172,7 @@ const app::GameInfo app::kGame = {
     .aspect_live = true,                  // the aspect setting applies at once (src/game/ultrawide.cpp)
     .frame_aspect = fn2::FrameShape,      // the front end at 16:9, a fight at the setting's shape
     .bars_backdrop = fn2::FrameHeld,      // the menus and cutscenes at 16:9: a dimmed, blurred copy of the frame at the sides
+    .widen_ms = 600,                      // 16:9 menus to an ultrawide fight: the sides open out over 0.6 s (no snap)
     .vblank_hz = 50,                      // PAL 50 Hz: the game steps a 50th of a second a frame (0x37DE1C +0.02)
     // optional, after these: .achievements (conditions on guest memory), .same_code (other releases' xbe SHA-1s with
     // the same code), .wheel (what a steering wheel's force feedback follows)

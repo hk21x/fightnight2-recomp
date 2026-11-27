@@ -19,6 +19,15 @@ Newest first. Each entry: date, what changed, what was learned, what's next.
 
 ## Log
 
+### 2026-11-27 - v1.0 tagged again (Harry removed the first v1.0 release)
+Harry tested 5e1f0be ("All working") and asked for the release again as v1.0, with new screenshots. README: from the
+GPU-VM (1920x800, D3D12, aspect screen) a new hero (the Staples Center, round 1), the main menu with Quit (the top of
+fightnight2-menus.webp; Select Boxer kept), fightnight2-pc-in-game.webp (X on Options' Settings screen and the pause
+menu's PC SETTINGS panel); text for the in-game PC settings, the widen into a fight, Unlock everything, Quit Game and an
+Achievements section (10, 315 points); the tab markers' known issue and the roadmap's achievements gone.
+docs/releases/v1.0.md the same. Smoke OK. The old tag v1.0 (d74d861) deleted from GitHub and v1.0 tagged at main; the
+workflow makes the draft with the launcher. Next: recomp-vm builds the package from a clean clone of the tag.
+
 ### 2026-11-27 - Ultrawide: no pop at the change of shape (a frame's shape carried by its draws)
 Harry: still a pop as the widescreen opens. Cause: the renderers reshaped their targets and cropped the shown frame by
 the shape decided *now*, while what they drew and showed was a frame behind (the render thread) or a step behind

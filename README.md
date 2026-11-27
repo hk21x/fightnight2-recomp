@@ -15,7 +15,7 @@
 </p>
 
 <p align="center">
-  <img src="docs/img/fightnight2-hero.webp" alt="Bernard Hopkins landing a punch on Winky Wright at the Staples Center, at 21:9 with the health and stamina bars in proportion" width="800">
+  <img src="docs/img/fightnight2-hero.webp" alt="Bernard Hopkins and Winky Wright at the Staples Center, at 21:9 with the health and stamina bars in proportion" width="800">
 </p>
 
 **The 2005 Xbox boxing game, running natively on PC.** This is not an emulator. The game's own x86 code is statically
@@ -34,6 +34,7 @@ away.
 - [Widescreen and the HUD](#widescreen-and-the-hud)
 - [Smooth motion](#smooth-motion)
 - [PC Settings](#pc-settings)
+- [Achievements](#achievements)
 - [Graphics settings](#graphics-settings)
 - [Controls](#controls)
 - [Requirements](#requirements)
@@ -63,16 +64,18 @@ the game's own picture, and with smooth motion on, the fights at your frame rate
 
 | | |
 |---|---|
-| **Widescreen** | True proportions on any screen, 21:9 and wider included. The fights fill the screen with the arena's view widened; the menus keep their 16:9 shape in the middle with a dimmed, blurred copy filling the sides. |
+| **Widescreen** | True proportions on any screen, 21:9 and wider included. The fights fill the screen with the arena's view widened; the menus keep their 16:9 shape in the middle with a dimmed, blurred copy filling the sides, and the sides open out over half a second as a fight starts. |
 | **Aspect, changed as you play** | From the screen's shape, 16:9 or fill the screen, applied at once, mid-fight too. |
 | **HUD in proportion** | The health and stamina bars, the menus and the button pictures keep their shape and size on any screen: on a wide one they stay where a 16:9 TV shows them, never stretched. **F9** hides the HUD for screenshots. |
 | **Smooth motion** | The game moves its fighters 50 times a second; turned on, the fights are drawn with frames in between, up to your frame rate cap: the camera and the ring glide at 144 or 240 frames a second. The game's speed is unchanged. |
 | **Sharper graphics** | Render scale up to 200%, MSAA up to 8x, FXAA or SMAA, sharpening, anisotropic filtering, enhanced textures, and sharp text and HUD. |
-| **PC Settings** | **F1** opens the settings window anywhere, over the game. Saved in `settings.toml`. |
+| **PC Settings** | **F1** opens the settings window anywhere, over the game; the main ones are also in the game's own menus: **X** on Options and **X** on the pause menu. Saved in `settings.toml`. |
+| **Achievements** | 10, for the Career's wins, knockouts and belts, a created champ, the fight store and a retirement, kept in `achievements.toml` beside the game. |
+| **Unlock everything** | One setting (the **Game** page) makes every venue, boxer, and Create Champ and fight store item available; your save keeps its own progress. |
 | **Mouse and keyboard** | Total Punch Control on the mouse: flick it for jabs, hooks and uppercuts, as the right stick. WASD moves, Shift leans, Space or the right mouse button blocks. |
 | **Mouse in the menus** | Click to choose, right click goes back, the wheel moves the selection. |
 | **Controllers** | Xbox, PlayStation and Switch pads with hot plugging and rumble. **Modern button pictures** show today's Xbox pad: LB and RB for White and Black, LT and RT, View and Menu. |
-| **Quality of life** | Skip the intro movies, hide the HUD (F9), F12 screenshots at full resolution, Alt+Enter for full screen, English, German or French, an optional boot splash (`splash.png` beside the game). |
+| **Quality of life** | Skip the intro movies, Quit Game on the title menu, hide the HUD (F9), F12 screenshots at full resolution, Alt+Enter for full screen, English, German or French, an optional boot splash (`splash.png` beside the game). |
 
 ## Widescreen and the HUD
 <sup>[(Back to top)](#table-of-contents)</sup>
@@ -93,6 +96,9 @@ changed in the settings while you fight, and the view follows at once; a 4:3 cho
   <br>
   <i>The menus keep their 16:9 shape on a wide screen, a dimmed, blurred copy at the sides.</i>
 </p>
+
+From the menus into a fight, the picture does not jump to the wider shape: the arena's sides open out over about half a
+second.
 
 The walk-ins, the replays and the knockdowns fill the screen as the fights do. The movies keep their 4:3 shape, with black at the sides.
 
@@ -121,10 +127,38 @@ Page Up and Page Down) change its page; changes apply at once unless the page sa
 |---|---|
 | **Display** | Monitor, display mode (full screen, borderless, window), resolution, vertical sync, aspect ratio |
 | **Graphics** | Render scale, texture filtering, frame rate cap, MSAA, smooth alpha edges, edge smoothing (FXAA, SMAA), scaling filter, enhanced textures, sharpening, CRT look, low latency, frames a second shown, sharp text and HUD, the renderer (Direct3D 12 or 11) |
-| **Game** | Language (English, German, French), modern button pictures, skip intro movies, hide the HUD, smooth motion |
+| **Game** | Language (English, German, French), modern button pictures, skip intro movies, hide the HUD, smooth motion, unlock everything |
 | **General**, **Controls** | Pausing when the window is not in front; key and button bindings, the mouse and the sticks |
 
 Everything is saved in `settings.toml` beside the game.
+
+<p align="center">
+  <img src="docs/img/fightnight2-pc-in-game.webp" alt="PC settings in the game's own Settings screen from Options, and the PC SETTINGS panel on the pause menu in a fight" width="800">
+  <br>
+  <i>The PC settings in the game's own menus: X on Options (My Corner), and X on the pause menu in a fight.</i>
+</p>
+
+The main PC settings are in the game's own menus too, in its style and with the pad. **X** on Options (My Corner >
+Options) opens the Settings screen with the PC settings in place of the game's: display mode, frame rate cap, edge
+smoothing, vertical sync, smooth motion, aspect ratio and more; A keeps the changes, B leaves them. **X** on the pause
+menu in a fight opens a PC SETTINGS panel with smooth motion, frame rate cap, vertical sync, render scale, MSAA, edge
+smoothing and the frames a second shown.
+
+## Achievements
+<sup>[(Back to top)](#table-of-contents)</sup>
+
+10 achievements, 315 points, kept in `achievements.toml` beside the game. The settings window's **Achievements** page
+lists them with your unlocks.
+
+| Achievement | How | Points |
+|---|---|---|
+| Turning Pro / Lights Out | Win your first professional fight in Career / win one by knockout | 10 each |
+| Contender / Knockout Artist | Win 10 professional fights / score 10 knockouts in one Career | 25 each |
+| Perfect Record | Go 10-0 as a professional | 50 |
+| Champion / Undisputed | Win a title belt / hold three at once | 50 / 100 |
+| Self Made | Create a champ | 10 |
+| Dressed to Win | Buy something in the fight store | 10 |
+| Hang Them Up | Retire a boxer at the end of a Career | 25 |
 
 ## Graphics settings
 <sup>[(Back to top)](#table-of-contents)</sup>
@@ -269,14 +303,12 @@ when you report a problem on the <a href="https://discord.gg/PQjkKsdtc">Discord 
 <sup>[(Back to top)](#table-of-contents)</sup>
 
 - **Smooth motion:** the boxers' limbs move at the game's 50 a second while the camera and the ring are smooth.
-- **Button pictures:** the menus' tab markers still show the old pad's L and R.
 - **My Gym:** the drills' instruction pop-ups stay at 16:9 in the middle of a wide screen.
 - **Not yet covered by testing:** NVIDIA graphics cards.
 
 ## Roadmap
 <sup>[(Back to top)](#table-of-contents)</sup>
 
-- **Achievements**, for knockouts, titles and the career.
 - **The boxers' limbs smooth too** with smooth motion, on every graphics card.
 
 ## Community and support

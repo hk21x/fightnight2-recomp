@@ -172,20 +172,17 @@ namespace fn2 {
 bool InFight();  // ultrawide.cpp
 bool FightMenuShown();  // src/common/buttons.cpp
 bool PcPageShown();     // pc_page.cpp
-// X on Options (its footer says PC SETUP) and on a fight's pause menu: the settings window, the press kept from the game
+void PcFightKey();      // pc_page.cpp: X on the fight's pause menu
+// X on a fight's pause menu: PC Settings in the pause menu's own Settings panel (pc_page.cpp); X on Options is Options'
+// own key handler's (pc_page.cpp too). The press reaches the game: the pause menu's handler is what opens it.
 void PcSettingsKey(input::Pad& pad) {
     static bool was = false;
     const int x = input::kX - input::kA;
     const bool now = pad.analog[x] > 128;
-    const bool paused = FightMenuShown(), options = false;  // Options: its own key handler (PC Settings, pc_page.cpp)
-    if (now && !was && (options || paused) && !app::OverlayOpen()) {
-        LOGR("fn2: PC SETTINGS (X on %s)", options ? "Options" : "the pause menu");
-        app::ToggleOverlay();
-    }
+    const bool paused = FightMenuShown();
+    if (now && !was && paused && !app::OverlayOpen()) PcFightKey();  // the pause menu's handler opens PC Settings
     was = now;
-    if (options || paused) pad.analog[x] = 0;
     if (PcPageShown()) pad.analog[input::kY - input::kA] = 0;  // the rows' help is the game's rows'
-
 }
 }  // namespace fn2
 

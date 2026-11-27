@@ -17,7 +17,11 @@
 // is skipped. B asks the game's own "undo all changes?" and saves nothing.
 // Entry: Options' key handler is callGF2's body (menus.cpp): X (INPUTCODE.CIRCLE) calls callGF("FN2_PCMODE") (seen at
 // the function table's lookup: PcPageEnter) and the screen's own goSettings.
+#include <algorithm>
+#include <atomic>
+#include <chrono>
 #include <cstdint>
+#include <map>
 #include <cstdlib>
 #include <cstring>
 #include <mutex>
@@ -237,4 +241,183 @@ X86_FUNC(sub_000C58B0) {
     }
 game:
     __imp__sub_000C58B0(ctx, base);
+}
+
+// ---- PC Settings in a fight: X on the pause menu opens the pause menu's own Settings panel (native, sub_EE1D0) in a PC
+// mode, titled PC SETTINGS, its seven rows the PC settings below, in the game's own style; A keeps, B backs out.
+//
+// The panel (0x90 bytes, the fight menu manager's state 6, opened by the pause menu's handler 0xECCD0 with
+// manager->vtbl[0x98](6), the manager at [[0x365028]+0x30]) builds 7 rows: list rows (0xE0A80, 0xD0 bytes: value +0x90,
+// count +0x94, choice string ids from +0x98) and, for the volumes, slider rows (0xE0490, 0xA0 bytes, the same
+// arguments). In PC mode the sliders are made list rows (allocation 0xA0 -> 0xD0, 0xE0490 -> 0xE0A80); after the build
+// each row gets our choices (string ids 0xF000 up, ours at the lookup 0x231D60) and value (vtbl[0x94], which draws the
+// choice) and is enabled (vtbl[0x6C]). Labels and the title: their string ids are ours while the panel builds.
+// The game's own work on these rows is kept from it: the live volume preview (0xEE060), the vibration buzz (0xEDCE0)
+// and the save on A (0xEDDA0, its settings and volumes); B's 0xEDD50 puts back the volumes it had (unchanged).
+namespace fn2 {
+namespace {
+const char* const kFightRows[7] = {"b3Knockdown", "nNumRounds", "bIllegalBlows", "nAudioType", "nLanguage",
+                                   "nRoundLength", "bAutosave"};  // smooth motion, frame cap, vsync, scale, MSAA, AA, fps
+const uint16_t kFightLabelIds[7] = {0x25C, 0x277, 0x259, 0x25A, 0x25B, 0x264, 0x25D};  // the rows' own labels
+std::atomic<bool> g_fight{false};     // the panel is ours
+std::atomic<bool> g_building{false};  // inside the panel's build
+std::atomic<int64_t> g_fight_key{0};  // X on the pause menu, ms (steady clock)
+std::map<uint32_t, uint32_t> g_text16;  // our string id -> UTF-16 text in guest memory
+std::mutex g_text_lock;
+
+int64_t NowMs() {
+    return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch())
+        .count();
+}
+uint32_t Text16(uint32_t id, const char* s) {
+    std::lock_guard<std::mutex> hold(g_text_lock);
+    auto it = g_text16.find(id);
+    if (it != g_text16.end()) return it->second;
+    const uint32_t n = uint32_t(std::strlen(s));
+    const uint32_t va = mem::AllocSystem(2 * (n + 1));
+    for (uint32_t i = 0; i <= n; i++) kernel::W16(va + 2 * i, uint16_t(uint8_t(s[i])));
+    return g_text16[id] = va;
+}
+// our choice ids: row r, choice c
+constexpr uint32_t kOurIds = 0xF000;
+uint32_t ChoiceId(int r, int c) { return kOurIds + uint32_t(r) * 16 + uint32_t(c); }
+
+uint32_t Call(X86Context& ctx, uint32_t fn, uint32_t self, std::initializer_list<uint32_t> args) {  // thiscall
+    const uint32_t ecx = ctx.ecx;
+    ctx.ecx = self;
+    const uint32_t r = kernel::CallGuest(ctx, fn, args);
+    ctx.ecx = ecx;
+    return r;
+}
+const Row* FightRow(int i) { return RowOf(kFightRows[i]); }
+}  // namespace
+
+// X on a fight's pause menu (menus.cpp, the pad hook): the pause menu's handler opens our panel at its next call
+void PcFightKey() { g_fight_key = NowMs(); }
+bool PcFightShown() { return g_fight; }
+}  // namespace fn2
+
+// the pause menu's key handler (thiscall: buttons, ?; ret 8)
+X86_EXTERN_FUNC(__imp__sub_000ECCD0);
+X86_FUNC(sub_000ECCD0) {
+    const int64_t key = fn2::g_fight_key.exchange(0);
+    if (key && fn2::NowMs() - key < 500) {
+        const uint32_t manager = kernel::R32(kernel::R32(0x365028) + 0x30);
+        fn2::g_fight = true;
+        LOGR("fn2: PC Settings (the fight's pause menu) opened");
+        fn2::Call(ctx, kernel::R32(kernel::R32(manager) + 0x98), manager, {6});
+        kernel::Return(ctx, 1, 2);
+        return;
+    }
+    __imp__sub_000ECCD0(ctx, base);
+}
+
+// the fight's Settings panel: built (thiscall: the manager; ret 4)
+X86_EXTERN_FUNC(__imp__sub_000EE1D0);
+X86_FUNC(sub_000EE1D0) {
+    if (!fn2::g_fight) {
+        __imp__sub_000EE1D0(ctx, base);
+        return;
+    }
+    const uint32_t panel = ctx.ecx;
+    fn2::g_building = true;
+    __imp__sub_000EE1D0(ctx, base);
+    fn2::g_building = false;
+    const uint32_t result = ctx.eax;
+    const uint32_t rows = kernel::R32(panel + 0x60), count = kernel::R32(panel + 0x64);
+    for (uint32_t i = 0; i < count && i < 7; i++) {
+        const uint32_t row = kernel::R32(rows + 4 * i);
+        const fn2::Row* r = fn2::FightRow(int(i));
+        if (!row || !r || kernel::R32(row) != 0x2F3370) continue;  // a list row
+        const uint32_t n = uint32_t(std::min<size_t>(r->choices.size(), 14));
+        for (uint32_t c = 0; c < n; c++) {
+            fn2::Text16(fn2::ChoiceId(int(i), int(c)), r->choices[c]);
+            kernel::W32(row + 0x98 + 4 * c, fn2::ChoiceId(int(i), int(c)));
+        }
+        kernel::W32(row + 0x94, n);
+        const uint32_t value = uint32_t(std::clamp(r->get(), 0, int(n) - 1));
+        const uint32_t vtbl = kernel::R32(row);
+        fn2::Call(ctx, kernel::R32(vtbl + 0x6C), row, {1, 0});  // enabled
+        fn2::Call(ctx, kernel::R32(vtbl + 0x94), row, {value});
+    }
+    ctx.eax = result;
+    LOGR("fn2: PC Settings: the fight's Settings panel shows the PC settings");
+}
+
+// the heap (size, flags; cdecl): while the panel builds ours, a slider row's 0xA0 is a list row's 0xD0
+X86_EXTERN_FUNC(__imp__sub_0014ABB0);
+X86_FUNC(sub_0014ABB0) {
+    if (fn2::g_building && kernel::R32(ctx.esp + 4) == 0xA0) kernel::W32(ctx.esp + 4, 0xD0);
+    __imp__sub_0014ABB0(ctx, base);
+}
+// a slider row (thiscall: the panel, 0; ret 8): a list row while the panel builds ours
+X86_EXTERN_FUNC(__imp__sub_000E0490);
+X86_EXTERN_FUNC(__imp__sub_000E0A80);
+X86_FUNC(sub_000E0490) {
+    if (fn2::g_building) __imp__sub_000E0A80(ctx, base);
+    else __imp__sub_000E0490(ctx, base);
+}
+
+// a string by id (table, id; cdecl): ours from 0xF000; while our panel builds, its labels and title
+X86_EXTERN_FUNC(__imp__sub_00231D60);
+X86_FUNC(sub_00231D60) {
+    const uint32_t id = kernel::R32(ctx.esp + 8) & 0xFFFF;
+    uint32_t ours = 0;
+    if (id >= fn2::kOurIds) {
+        std::lock_guard<std::mutex> hold(fn2::g_text_lock);
+        auto it = fn2::g_text16.find(id);
+        ours = it != fn2::g_text16.end() ? it->second : 0;
+        if (!ours) ours = 0;  // not ours: the game's
+    } else if (fn2::g_building) {
+        for (int i = 0; i < 7; i++)
+            if (id == fn2::kFightLabelIds[i] && fn2::FightRow(i)) ours = fn2::Text16(0xE000 + uint32_t(i), fn2::FightRow(i)->label);
+        if (id == 252 || id == 17) ours = fn2::Text16(0xE100, "PC SETTINGS");
+    }
+    if (ours) {
+        ctx.eax = ours;
+        ctx.esp += 4;
+        return;
+    }
+    __imp__sub_00231D60(ctx, base);
+}
+
+// the panel's live volume preview, its vibration buzz: not for our rows
+X86_EXTERN_FUNC(__imp__sub_000EE060);
+X86_FUNC(sub_000EE060) {
+    if (fn2::g_fight) { ctx.esp += 4; return; }
+    __imp__sub_000EE060(ctx, base);
+}
+X86_EXTERN_FUNC(__imp__sub_000EDCE0);
+X86_FUNC(sub_000EDCE0) {
+    if (fn2::g_fight) { ctx.esp += 4; return; }
+    __imp__sub_000EDCE0(ctx, base);
+}
+// A: the panel's save; ours sets the PC settings
+X86_EXTERN_FUNC(__imp__sub_000EDDA0);
+X86_FUNC(sub_000EDDA0) {
+    if (!fn2::g_fight) {
+        __imp__sub_000EDDA0(ctx, base);
+        return;
+    }
+    const uint32_t panel = ctx.ecx, rows = kernel::R32(panel + 0x60), count = kernel::R32(panel + 0x64);
+    std::string said;
+    for (uint32_t i = 0; i < count && i < 7; i++) {
+        const uint32_t row = kernel::R32(rows + 4 * i);
+        const fn2::Row* r = fn2::FightRow(int(i));
+        if (!row || !r || kernel::R32(row) != 0x2F3370) continue;
+        const int v = int(kernel::R32(row + 0x90));
+        r->set(v);
+        said += std::string(said.empty() ? "" : ", ") + r->label + " " + r->choices[size_t(std::clamp(v, 0, int(r->choices.size()) - 1))];
+    }
+    app::Save();
+    app::ApplyDisplay();
+    fn2::g_fight = false;
+    LOGR("fn2: PC Settings (fight) saved: %s", said.c_str());
+    ctx.esp += 4;
+}
+// B: the panel's undo (the volumes it had); ours leaves
+X86_EXTERN_FUNC(__imp__sub_000EDD50);
+X86_FUNC(sub_000EDD50) {
+    if (fn2::g_fight.exchange(false)) LOGR("fn2: PC Settings (fight) closed, nothing changed");
+    __imp__sub_000EDD50(ctx, base);
 }

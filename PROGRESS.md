@@ -19,6 +19,26 @@ Newest first. Each entry: date, what changed, what was learned, what's next.
 
 ## Log
 
+### 2026-11-27 - PC Settings in a fight: X on the pause menu opens the pause menu's own Settings panel in a PC mode
+
+Harry: the menu page works (and the B, B crash is fixed); now the same in a fight. The fight's menus are native (no APT
+screens loaded), so the pause menu's Settings panel is lent instead (src/game/pc_page.cpp, end):
+- The panel: sub_EE1D0 (0x90 bytes), the fight menu manager's state 6 ([[0x365028]+0x30], vtbl+0x98(6), as the pause
+  menu's handler 0xECCD0 does for SETTINGS). 7 rows: list rows (0xE0A80, 0xD0: value +0x90, count +0x94, string ids
+  from +0x98; vtbl+0x94 sets the value and draws it, +0x6C enables) and 4 volume sliders (0xE0490, 0xA0).
+- X on the pause menu (pad hook: the a_fight bind recency) now reaches the game; the next call of the pause menu's
+  handler opens the panel in PC mode. While it builds: sliders made list rows (heap 0xA0 -> 0xD0, 0xE0490 ->
+  0xE0A80, the same arguments), the row labels' and title's string ids (0x25C 0x277 0x259 0x25A 0x25B 0x264 0x25D,
+  SETTINGS 252/17) are ours at the string lookup 0x231D60 (UTF-16 in guest memory); after it, each row gets our
+  choices (ids from 0xF000) and value. Kept from the game in PC mode: the live volume preview 0xEE060, the vibration
+  buzz 0xEDCE0, the save 0xEDDA0 (A: ours sets the PC settings, app::Save, ApplyDisplay); B's 0xEDD50 puts back the
+  volumes it had.
+- Rows: Smooth motion, Frame rate cap, Vertical sync, Render scale, MSAA, Edge smoothing, Show frames a second (the
+  panel holds seven; the rest stay on the Options page and F1). The fight font has no %: render scale reads 100/150/200.
+- Headless: PC SETTINGS drawn in the panel; RIGHT, DOWN, RIGHT, A: "saved: SMOOTH MOTION OFF, FRAME RATE CAP 120, ...",
+  back to GAME PAUSED; B: nothing kept (next open shows the old values); the game's own SETTINGS (camera, volume bars)
+  as before. Smoke OK.
+
 ### 2026-11-26 - PC Settings page: crash after backing out fixed
 
 Harry: PC Settings, B, then B again (on Options): the game crashed. Headless the same: popup YES, B on Options, segfault.

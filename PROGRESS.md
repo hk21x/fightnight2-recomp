@@ -19,6 +19,22 @@ Newest first. Each entry: date, what changed, what was learned, what's next.
 
 ## Log
 
+### 2026-11-27 - Ultrawide: no snap from the menus' 16:9 into a fight; D3D11 gets the blurred sides
+
+Harry (55cca0c on his 3440x1440, D3D11): "menus 16:9 then I click into a game and it's 21:9"; then: the menu sides
+went black, and DX12 should not snap between ultrawide and 16:9. Cause of the black: his settings had renderer
+'d3d11' (chosen, not a fallback), which never had bars_backdrop. Seen on GPU-VM at 1920x800 on D3D11 (55cca0c): the
+menus pillarboxed black, one snap to 2.4:1 at the fight's first view; pause, PC Settings and back stay 2.4:1.
+- SDK fn2-widen 6051f2d (fast-forwarded into fn2-hold-aspect, FN2's own line; no other game uses it):
+  GameInfo::widen_ms and app::ShownAspect(): a frame that widens is shown widening over that time (smoothstep),
+  its middle at the shown shape and its sides cropped then opening out, never stretched; the bars beside it the
+  dimmed copy while it does; narrowing at once (the narrower frame has nothing at its sides). Both renderers'
+  BlitFrame. D3D11 gets bars_backdrop as D3D12's (64x36, 8x8 box, x0.45, stretched behind; BlitOptions::mul).
+- FN2: widen_ms = 600.
+- GPU-VM (a1da040 from recomp-vm, D3D11 then D3D12, 20 ms screen grabs over a Play Now start): the menus and the
+  loading screen with the blurred copy at the sides on both; the arena's first frames with the picture's edge moving
+  out to the window's sides over about 0.6 s, no snap. VM settings put back. Smoke OK.
+
 ### 2026-11-27 - PC Settings in a fight: X on the pause menu opens the pause menu's own Settings panel in a PC mode
 
 Harry: the menu page works (and the B, B crash is fixed); now the same in a fight. The fight's menus are native (no APT
